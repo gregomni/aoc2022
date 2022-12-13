@@ -42,6 +42,8 @@ case 11:
     print(monkeys(contents))
 case 12:
     print(hillClimb(contents))
+case 13:
+    print(distressSignal(contents))
 default:
     print("unknown problem")
     exit(2)
