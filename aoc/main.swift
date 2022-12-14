@@ -44,6 +44,8 @@ case 12:
     print(hillClimb(contents))
 case 13:
     print(distressSignal(contents))
+case 14:
+    print(sand(contents))
 default:
     print("unknown problem")
     exit(2)

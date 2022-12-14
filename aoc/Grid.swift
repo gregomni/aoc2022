@@ -93,6 +93,13 @@ class Grid<Element> : Collection, Sequence {
             case .down: return Index(x: x, y: y+1)
             }
         }
+
+        func direction(to: Self) -> Direction {
+            if x > to.x { return .left }
+            if x < to.x { return .right }
+            if y > to.y { return .up }
+            return .down
+        }
     }
 
     // Needed this for Collection conformance, but completely untested
@@ -146,6 +153,27 @@ class Grid<Element> : Collection, Sequence {
     }
     func downFrom(x: Int, y: Int? = nil) -> PositionSequence {
         PositionSequence(grid: self, current: Index(x: x, y: y ?? ySize-1), move: { $0.direction(.down) })
+    }
+}
+
+import CoreGraphics
+import ImageIO
+import UniformTypeIdentifiers
+
+extension Grid {
+    func bitmap(url: URL, pixelSize: Int = 1, transform: (Element) -> (CGFloat,CGFloat,CGFloat)) {
+        let space = CGColorSpace(name: CGColorSpace.genericRGBLinear)!
+        let context = CGContext(data: nil, width: xSize * pixelSize, height: ySize * pixelSize, bitsPerComponent: 8, bytesPerRow: 0, space: space, bitmapInfo: CGImageAlphaInfo.premultipliedFirst.rawValue)!
+        let size = CGSize(width: pixelSize, height: pixelSize)
+        for i in self.indices {
+            let (r,g,b) = transform(self[i])
+            context.setFillColor(red: r, green: g, blue: b, alpha: 1.0)
+            context.fill([CGRect(origin: CGPoint(x: Double(i.x * pixelSize) - 0.5, y: Double((ySize - 1 - i.y) * pixelSize) - 0.5), size: size)])
+        }
+        let image = context.makeImage()!
+        let destination = CGImageDestinationCreateWithURL(url as CFURL, UTType.png.identifier as CFString, 1, nil)!
+        CGImageDestinationAddImage(destination, image, nil)
+        CGImageDestinationFinalize(destination)
     }
 }
 
