@@ -46,6 +46,8 @@ case 13:
     print(distressSignal(contents))
 case 14:
     print(sand(contents))
+case 15:
+    print(sensorBeacon(contents))
 default:
     print("unknown problem")
     exit(2)
