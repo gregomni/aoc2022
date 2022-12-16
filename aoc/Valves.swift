@@ -11,7 +11,10 @@ import RegexBuilder
 struct Valve {
     let name: String
     let rate: Int
-    var tunnels: [String: Int]
+}
+
+extension Valve: Identifiable {
+    var id: String { name }
 }
 
 struct Possibility {
@@ -61,7 +64,7 @@ struct Possibility {
 
 func valves(_ contents: String, numberOfWorkers: Int = 2) -> Int {
     let maxTime = 30
-    var valves: [String:Valve] = [:]
+    let valves = DirectedGraph<Valve>()
 
     let elapsed = Date()
 
@@ -85,45 +88,14 @@ func valves(_ contents: String, numberOfWorkers: Int = 2) -> Int {
         let match = line.firstMatch(of: regex)!
         let name = String(match.output.1)
         let tunnels = String(match.output.3).components(separatedBy: ", ")
-        var dict: [String: Int] = [:]
-        for t in tunnels {
-            dict[t] = 1
-        }
-        valves[name] = Valve(name: name, rate: match.output.2, tunnels: dict)
-    }
 
-    // Make a fully connected graph
-    var progress: Bool
-    repeat {
-        progress = false
-        for origin in valves.values {
-            for tunnel1 in origin.tunnels {
-                let midpoint = valves[tunnel1.key]!
-                for tunnel2 in midpoint.tunnels {
-                    let destination = tunnel2.key
-                    guard origin.name != destination else { continue }
-                    let distance = tunnel1.value + tunnel2.value
-                    if origin.tunnels[destination] == nil || origin.tunnels[destination]! > distance {
-                        valves[origin.name]!.tunnels[destination] = distance
-                        progress = true
-                    }
-                }
-            }
-        }
-    } while progress
+        valves.addNode(Valve(name: name, rate: match.output.2))
+        tunnels.forEach { valves.addEdge(from: name, to: $0) }
+    }
+    assert(valves.isValid())
 
-    // Now we don't need to visit any with a zero flow rate, remove them
-    var zeros: [String] = []
-    for valve in valves.values {
-        guard valve.rate == 0, valve.name != "AA" else { continue }
-        zeros.append(valve.name)
-    }
-    for zero in zeros {
-        for valve in valves.values {
-            valves[valve.name]!.tunnels[zero] = nil
-        }
-        valves[zero] = nil
-    }
+    valves.fullyConnect()
+    valves.remove(where: { $0.rate == 0 && $0.name != "AA" })
 
     print("Setup time: \(-elapsed.timeIntervalSinceNow)")
 
@@ -132,12 +104,12 @@ func valves(_ contents: String, numberOfWorkers: Int = 2) -> Int {
 
         // We score a move by imagining we go there, open the valve, and then move on to any other place we might want to go.
         var moveScores: [String : [String : Double]] = [:]
-        for tunnel in valves[location]!.tunnels {
+        for tunnel in valves.edges(location) {
             guard !start.visited.contains(tunnel.key) else { continue }
             let destination = tunnel.key
             let totalPressure = Double(max(0, (maxTime - (tunnel.value + 1))) * valves[destination]!.rate)
             var scores: [String : Double] = [:]
-            for secondLeg in valves[destination]!.tunnels {
+            for secondLeg in valves.edges(destination) {
                 guard !start.visited.contains(secondLeg.key) else { continue }
                 scores[secondLeg.key] = totalPressure / Double(tunnel.value + 1 + secondLeg.value)
             }
@@ -148,8 +120,8 @@ func valves(_ contents: String, numberOfWorkers: Int = 2) -> Int {
         // A bad move is one where, no matter where we want to travel two moves from now, we'd be better off opening a different valve instead.
         // I'm sure there's a better scoring function to use here, but this cuts out a bunch of dumb moves, at least.
         var goodMoves = Set(moveScores.keys)
-        var progress = true
-        while progress && goodMoves.count > 1 {
+        var progress: Bool
+        repeat {
             progress = false
             for testMove in goodMoves {
                 let testValues = moveScores[testMove]!
@@ -171,13 +143,13 @@ func valves(_ contents: String, numberOfWorkers: Int = 2) -> Int {
                     }
                 }
             }
-        }
+        } while progress && goodMoves.count > 1
 
         var result: [Possibility] = []
         for move in goodMoves {
             guard !start.visited.contains(move) else { continue }
             var moved = start
-            moved.move(to: move, time: valves[location]!.tunnels[move]! + 1, person: person)
+            moved.move(to: move, time: valves.edgeCost(location, move) + 1, person: person)
             result.append(moved)
         }
         if result.isEmpty {
@@ -198,7 +170,7 @@ func valves(_ contents: String, numberOfWorkers: Int = 2) -> Int {
         }
     }
 
-    let maxFlow = valves.values.reduce(0) { accum, valve in accum + valve.rate }
+    let maxFlow = valves.allNodes.reduce(0) { accum, valve in accum + valve.rate }
     var possibilities = [Possibility(people: numberOfWorkers)]
     while !possibilities.isEmpty {
         var current = possibilities.popLast()!
