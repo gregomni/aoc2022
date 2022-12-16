@@ -18,23 +18,26 @@ extension Valve: Identifiable {
 }
 
 struct Possibility {
+    struct Worker {
+        var position: String
+        var busy: Int
+    }
+
     var remaining: Set<String> = ["AA"]
     var time: Int = 0
     var flow: Int = 0
-    var position: [String]
-    var busy: [Int]
+    var workers: [Worker]
     var total: Int = 0
 
     init(people: Int = 1, allValves: [String]) {
         remaining = Set(allValves)
         remaining.remove("AA")
-        position = Array(repeating: "AA", count: people)
-        busy = (0 ..< people).map { $0 * 4 }
-        busy[0] = busy.last!
+        workers = (0 ..< people).map { Worker(position: "AA", busy: $0 * 4) }
+        workers[0].busy = workers.last!.busy
     }
 
     func available(_ person: Int) -> Bool {
-        busy[person] == 0
+        workers[person].busy == 0
     }
 
     mutating func openUp(rate: Int) {
@@ -44,26 +47,24 @@ struct Possibility {
     func moved(to: String, time t: Int, person: Int = 0) -> Possibility {
         var p = self
         p.remaining.remove(to)
-        p.position[person] = to
-        p.busy[person] = t
+        p.workers[person] = Worker(position: to, busy: t)
         return p
     }
 
     func snoozed(person: Int = 0) -> Possibility {
         var p = self
-        p.busy[person] = 99999
+        p.workers[person].busy = 99999
         return p
     }
 
     mutating func passTime(max: Int, end: Bool = false) {
         var t = max - time
         if !end {
-            t = min(busy.min()!, t)
+            t = min(workers.map({$0.busy}).min()!, t)
         }
-
         time += t
         total += (flow*t)
-        busy = busy.map { $0 - t }
+        workers = workers.map { Worker(position: $0.position, busy: $0.busy - t) }
     }
 }
 
@@ -105,7 +106,7 @@ func valves(_ contents: String, numberOfWorkers: Int = 2) -> Int {
         // We score a move by imagining we go there, open the valve, and then move on to any other place we might want to go.
         // Each score is the pressure gained (over all remaining time) per minute spent.
         var moveScores: [String : [String : Double]] = [:]
-        let location = start.position[person]
+        let location = start.workers[person].position
         for to in start.remaining {
             let firstTunnel = valves.edgeCost(location, to)
             let totalPressure = Double(max(0, (maxTime - (firstTunnel + 1))) * valves[to]!.rate)
@@ -136,9 +137,9 @@ func valves(_ contents: String, numberOfWorkers: Int = 2) -> Int {
         // Pass as much time as possible, workers who are no longer busy have now opened valves.
         // (Note: this depends upon AA having a flow rate of 0, workers won't ever be at the same valve afterwards.)
         current.passTime(max: maxTime)
-        for worker in 0 ..< numberOfWorkers {
-            guard current.available(worker) else { continue }
-            current.openUp(rate: valves[current.position[worker]]!.rate)
+        for person in 0 ..< numberOfWorkers {
+            guard current.available(person) else { continue }
+            current.openUp(rate: valves[current.workers[person].position]!.rate)
         }
         guard current.flow < maxFlow, current.time < maxTime else {
             current.passTime(max: maxTime, end: true)
