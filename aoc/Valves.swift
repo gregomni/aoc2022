@@ -93,33 +93,24 @@ func valves(_ contents: String, numberOfWorkers: Int = 2) -> Int {
     }
 
     // Make a fully connected graph
-    for origin in valves.values {
-        for dest in valves.values {
-            guard origin.name != dest.name else { continue }
-            var best: Int = 9999999
-            var start = Possibility()
-            start.position = [origin.name]
-            start.visited = [origin.name]
-            var possibilities = [start]
-            while !possibilities.isEmpty {
-                let current = possibilities.popLast()!
-                let location = current.position[0]
-                if let dist = valves[location]!.tunnels[dest.name] {
-                    best = min(best, current.time + dist)
-                } else {
-                    for tunnel in valves[location]!.tunnels {
-                        guard !current.visited.contains(tunnel.key) else { continue }
-                        var moved = current
-                        moved.move(to: tunnel.key, time: tunnel.value)
-                        moved.passTime(max: 99999)
-                        possibilities.append(moved)
+    var progress: Bool
+    repeat {
+        progress = false
+        for origin in valves.values {
+            for tunnel1 in origin.tunnels {
+                let midpoint = valves[tunnel1.key]!
+                for tunnel2 in midpoint.tunnels {
+                    let destination = tunnel2.key
+                    guard origin.name != destination else { continue }
+                    let distance = tunnel1.value + tunnel2.value
+                    if origin.tunnels[destination] == nil || origin.tunnels[destination]! > distance {
+                        valves[origin.name]!.tunnels[destination] = distance
+                        progress = true
                     }
                 }
             }
-            assert(best < 9999999)
-            valves[origin.name]!.tunnels[dest.name] = best
         }
-    }
+    } while progress
 
     // Now we don't need to visit any with a zero flow rate, remove them
     var zeros: [String] = []
@@ -134,6 +125,8 @@ func valves(_ contents: String, numberOfWorkers: Int = 2) -> Int {
         valves[zero] = nil
     }
 
+    print("Setup time: \(-elapsed.timeIntervalSinceNow)")
+
     func moves(_ start: Possibility, person: Int = 0) -> [Possibility] {
         let location = start.position[person]
 
@@ -142,12 +135,13 @@ func valves(_ contents: String, numberOfWorkers: Int = 2) -> Int {
         for tunnel in valves[location]!.tunnels {
             guard !start.visited.contains(tunnel.key) else { continue }
             let destination = tunnel.key
+            let totalPressure = Double(max(0, (maxTime - (tunnel.value + 1))) * valves[destination]!.rate)
             var scores: [String : Double] = [:]
             for secondLeg in valves[destination]!.tunnels {
                 guard !start.visited.contains(secondLeg.key) else { continue }
-                scores[secondLeg.key] = Double(valves[destination]!.rate) / Double(tunnel.value + secondLeg.value)
+                scores[secondLeg.key] = totalPressure / Double(tunnel.value + 1 + secondLeg.value)
             }
-            scores[destination] = Double(valves[destination]!.rate) / Double(tunnel.value)
+            scores[destination] = totalPressure / Double(tunnel.value + 1)
             moveScores[tunnel.key] = scores
         }
 

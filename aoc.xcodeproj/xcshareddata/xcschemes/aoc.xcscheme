@@ -57,7 +57,7 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "/Users/toon/AdventOfCode/test16.txt"
+            argument = "/Users/toon/AdventOfCode/input16.txt"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
