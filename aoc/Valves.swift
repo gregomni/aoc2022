@@ -18,20 +18,23 @@ extension Valve: Identifiable {
 }
 
 struct Possibility {
-    var visited: Set<String> = ["AA"]
+    var remaining: Set<String> = ["AA"]
     var time: Int = 0
     var flow: Int = 0
     var position: [String]
-    var travel: [Int]
+    var busy: [Int]
     var total: Int = 0
 
-    init(people: Int = 1) {
+    init(people: Int = 1, allValves: [String]) {
+        remaining = Set(allValves)
+        remaining.remove("AA")
         position = Array(repeating: "AA", count: people)
-        travel = Array(repeating: 0, count: people)
-        for person in 0 ..< people {
-            travel[person] = 4 * person
-        }
-        travel[0] = travel.last!
+        busy = (0 ..< people).map { $0 * 4 }
+        busy[0] = busy.last!
+    }
+
+    func available(_ person: Int) -> Bool {
+        busy[person] == 0
     }
 
     mutating func openUp(rate: Int) {
@@ -39,26 +42,24 @@ struct Possibility {
     }
 
     mutating func move(to: String, time t: Int, person: Int = 0) {
-        visited.insert(to)
+        remaining.remove(to)
         position[person] = to
-        travel[person] = t
+        busy[person] = t
     }
 
     mutating func wait(person: Int = 0) {
-        travel[person] = 99999
+        busy[person] = 99999
     }
 
     mutating func passTime(max: Int, end: Bool = false) {
         var t = max - time
         if !end {
-            t = min(travel.min()!, t)
+            t = min(busy.min()!, t)
         }
 
         time += t
         total += (flow*t)
-        for person in 0 ..< travel.count {
-            travel[person] -= t
-        }
+        busy = busy.map { $0 - t }
     }
 }
 
@@ -73,13 +74,7 @@ func valves(_ contents: String, numberOfWorkers: Int = 2) -> Int {
         Capture { OneOrMore(CharacterClass.anyOf("ABCDEFGHIJKLMNOPQRSTUVWXYZ")) }
         " has flow rate="
         Capture { OneOrMore(.digit) } transform: { Int($0)! }
-        "; tunnel"
-        ZeroOrMore("s")
-        " lead"
-        ZeroOrMore("s")
-        " to valve"
-        ZeroOrMore("s")
-        " "
+        "; tunnel" ; ZeroOrMore("s") ; " lead" ; ZeroOrMore("s") ; " to valve" ; ZeroOrMore("s") ; " "
         Capture { OneOrMore(.any) }
     }
 
@@ -103,51 +98,34 @@ func valves(_ contents: String, numberOfWorkers: Int = 2) -> Int {
         let location = start.position[person]
 
         // We score a move by imagining we go there, open the valve, and then move on to any other place we might want to go.
+        // Each score is the pressure gained (over all remaining time) per minute spent.
         var moveScores: [String : [String : Double]] = [:]
-        for tunnel in valves.edges(location) {
-            guard !start.visited.contains(tunnel.key) else { continue }
-            let destination = tunnel.key
-            let totalPressure = Double(max(0, (maxTime - (tunnel.value + 1))) * valves[destination]!.rate)
-            var scores: [String : Double] = [:]
-            for secondLeg in valves.edges(destination) {
-                guard !start.visited.contains(secondLeg.key) else { continue }
-                scores[secondLeg.key] = totalPressure / Double(tunnel.value + 1 + secondLeg.value)
-            }
-            scores[destination] = totalPressure / Double(tunnel.value + 1)
-            moveScores[tunnel.key] = scores
+        for to in start.remaining {
+            let firstTunnel = valves.edgeCost(start.position[person], to)
+            let totalPressure = Double(max(0, (maxTime - (firstTunnel + 1))) * valves[to]!.rate)
+            moveScores[to] = Dictionary(uniqueKeysWithValues: start.remaining.map { (key: $0, value: totalPressure / Double(firstTunnel + 1 + valves.edgeCost(to, $0))) })
         }
 
-        // A bad move is one where, no matter where we want to travel two moves from now, we'd be better off opening a different valve instead.
+        // A bad move is one where, no matter where we want to travel after it, we'd be better off opening a different valve instead.
         // I'm sure there's a better scoring function to use here, but this cuts out a bunch of dumb moves, at least.
         var goodMoves = Set(moveScores.keys)
         var progress: Bool
         repeat {
             progress = false
             for testMove in goodMoves {
-                let testValues = moveScores[testMove]!
-                for other in goodMoves {
-                    guard testMove != other else { continue }
+                for other in goodMoves where testMove != other {
                     let otherValues = moveScores[other]!
-                    var alwaysWorse = true
-                    for score in testValues {
-                        guard let otherValue = otherValues[score.key] else { continue }
-                        if score.value >= otherValue {
-                            alwaysWorse = false
-                            break
-                        }
-                    }
-                    if alwaysWorse {
+                    if moveScores[testMove]!.allSatisfy({ otherValues[$0.key]! > $0.value }) {
                         goodMoves.remove(testMove)
                         progress = true
                         break
                     }
                 }
             }
-        } while progress && goodMoves.count > 1
+        } while progress
 
         var result: [Possibility] = []
         for move in goodMoves {
-            guard !start.visited.contains(move) else { continue }
             var moved = start
             moved.move(to: move, time: valves.edgeCost(location, move) + 1, person: person)
             result.append(moved)
@@ -161,35 +139,36 @@ func valves(_ contents: String, numberOfWorkers: Int = 2) -> Int {
     }
 
     // Look for best solution
-    var best: Possibility? = nil
-    func checkScore(_ possibility: Possibility) {
-        var p = possibility
-        p.passTime(max: maxTime, end: true)
-        if best == nil || best!.total < p.total {
-            best = p
-        }
-    }
-
     let maxFlow = valves.allNodes.reduce(0) { accum, valve in accum + valve.rate }
-    var possibilities = [Possibility(people: numberOfWorkers)]
+    var best: Possibility? = nil
+    var possibilities = [Possibility(people: numberOfWorkers, allValves: valves.allNodes.map({ $0.name }))]
     while !possibilities.isEmpty {
         var current = possibilities.popLast()!
 
+        // Pass as much time as possible, workers who are no longer busy have now opened valves.
+        // (Note: this depends upon AA having a flow rate of 0, workers won't ever be at the same valve afterwards.)
         current.passTime(max: maxTime)
-        guard current.time < maxTime else { checkScore(current); continue }
+        for worker in 0 ..< numberOfWorkers {
+            guard current.available(worker) else { continue }
+            current.openUp(rate: valves[current.position[worker]]!.rate)
+        }
+        guard current.flow < maxFlow, current.time < maxTime else {
+            current.passTime(max: maxTime, end: true)
+            if current.total > (best?.total ?? 0) {
+                best = current
+            }
+            continue
+        }
 
+        // New possibilities are the permutations of any available workers choosing new moves.
         var new: [Possibility] = [current]
         for worker in 0 ..< numberOfWorkers {
-            guard current.travel[worker] == 0 else { continue }
+            guard current.available(worker) else { continue }
             let starts = new
             new.removeAll()
 
             for possibility in starts {
-                var p = possibility
-                let location = current.position[worker]
-                p.openUp(rate: valves[location]!.rate)
-                guard p.flow < maxFlow else { checkScore(p); break }
-                new.append(contentsOf: moves(p, person: worker))
+                new.append(contentsOf: moves(possibility, person: worker))
             }
         }
         possibilities.append(contentsOf: new)
