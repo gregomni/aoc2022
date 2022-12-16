@@ -53,11 +53,11 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "15"
+            argument = "16"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "/Users/toon/AdventOfCode/input15.txt"
+            argument = "/Users/toon/AdventOfCode/test16.txt"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

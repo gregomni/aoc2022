@@ -48,6 +48,8 @@ case 14:
     print(sand(contents))
 case 15:
     print(sensorBeacon(contents))
+case 16:
+    print(valves(contents))
 default:
     print("unknown problem")
     exit(2)
