@@ -41,14 +41,18 @@ struct Possibility {
         flow += rate
     }
 
-    mutating func move(to: String, time t: Int, person: Int = 0) {
-        remaining.remove(to)
-        position[person] = to
-        busy[person] = t
+    func moved(to: String, time t: Int, person: Int = 0) -> Possibility {
+        var p = self
+        p.remaining.remove(to)
+        p.position[person] = to
+        p.busy[person] = t
+        return p
     }
 
-    mutating func wait(person: Int = 0) {
-        busy[person] = 99999
+    func snoozed(person: Int = 0) -> Possibility {
+        var p = self
+        p.busy[person] = 99999
+        return p
     }
 
     mutating func passTime(max: Int, end: Bool = false) {
@@ -95,13 +99,15 @@ func valves(_ contents: String, numberOfWorkers: Int = 2) -> Int {
     print("Setup time: \(-elapsed.timeIntervalSinceNow)")
 
     func moves(_ start: Possibility, person: Int = 0) -> [Possibility] {
-        let location = start.position[person]
+        // If there are no more places to go, this person can just rest.
+        guard !start.remaining.isEmpty else { return [start.snoozed(person: person)] }
 
         // We score a move by imagining we go there, open the valve, and then move on to any other place we might want to go.
         // Each score is the pressure gained (over all remaining time) per minute spent.
         var moveScores: [String : [String : Double]] = [:]
+        let location = start.position[person]
         for to in start.remaining {
-            let firstTunnel = valves.edgeCost(start.position[person], to)
+            let firstTunnel = valves.edgeCost(location, to)
             let totalPressure = Double(max(0, (maxTime - (firstTunnel + 1))) * valves[to]!.rate)
             moveScores[to] = Dictionary(uniqueKeysWithValues: start.remaining.map { (key: $0, value: totalPressure / Double(firstTunnel + 1 + valves.edgeCost(to, $0))) })
         }
@@ -109,38 +115,20 @@ func valves(_ contents: String, numberOfWorkers: Int = 2) -> Int {
         // A bad move is one where, no matter where we want to travel after it, we'd be better off opening a different valve instead.
         // I'm sure there's a better scoring function to use here, but this cuts out a bunch of dumb moves, at least.
         var goodMoves = Set(moveScores.keys)
-        var progress: Bool
-        repeat {
-            progress = false
-            for testMove in goodMoves {
-                for other in goodMoves where testMove != other {
-                    let otherValues = moveScores[other]!
-                    if moveScores[testMove]!.allSatisfy({ otherValues[$0.key]! > $0.value }) {
-                        goodMoves.remove(testMove)
-                        progress = true
-                        break
-                    }
+        for test in moveScores {
+            for other in moveScores where test.key != other.key {
+                if test.value.allSatisfy({ other.value[$0.key]! > $0.value }) {
+                    goodMoves.remove(test.key)
+                    break
                 }
             }
-        } while progress
-
-        var result: [Possibility] = []
-        for move in goodMoves {
-            var moved = start
-            moved.move(to: move, time: valves.edgeCost(location, move) + 1, person: person)
-            result.append(moved)
         }
-        if result.isEmpty {
-            var p = start
-            p.wait(person: person)
-            result.append(p)
-        }
-        return result
+        return goodMoves.map { start.moved(to: $0, time: valves.edgeCost(location, $0) + 1, person: person) }
     }
 
     // Look for best solution
     let maxFlow = valves.allNodes.reduce(0) { accum, valve in accum + valve.rate }
-    var best: Possibility? = nil
+    var best: Int = 0
     var possibilities = [Possibility(people: numberOfWorkers, allValves: valves.allNodes.map({ $0.name }))]
     while !possibilities.isEmpty {
         var current = possibilities.popLast()!
@@ -154,9 +142,7 @@ func valves(_ contents: String, numberOfWorkers: Int = 2) -> Int {
         }
         guard current.flow < maxFlow, current.time < maxTime else {
             current.passTime(max: maxTime, end: true)
-            if current.total > (best?.total ?? 0) {
-                best = current
-            }
+            best = max(best, current.total)
             continue
         }
 
@@ -174,5 +160,5 @@ func valves(_ contents: String, numberOfWorkers: Int = 2) -> Int {
         possibilities.append(contentsOf: new)
     }
     print("Elapsed time: \(-elapsed.timeIntervalSinceNow)")
-    return best!.total
+    return best
 }
