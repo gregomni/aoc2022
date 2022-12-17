@@ -23,7 +23,7 @@ struct Possibility {
         var busy: Int
     }
 
-    var remaining: Set<String> = ["AA"]
+    var remaining: Set<String>
     var time: Int = 0
     var flow: Int = 0
     var workers: [Worker]

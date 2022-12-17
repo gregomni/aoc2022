@@ -50,6 +50,8 @@ case 15:
     print(sensorBeacon(contents))
 case 16:
     print(valves(contents))
+case 17:
+    print(tetris(contents))
 default:
     print("unknown problem")
     exit(2)

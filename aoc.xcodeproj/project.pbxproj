@@ -20,6 +20,7 @@
 		6C9E2449294B772F001FA794 /* SensorBeacon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C9E2448294B772F001FA794 /* SensorBeacon.swift */; };
 		6CB741A1294CDB73003EFE8E /* Valves.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CB741A0294CDB73003EFE8E /* Valves.swift */; };
 		6CB741A3294CE6C4003EFE8E /* Graph.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CB741A2294CE6C4003EFE8E /* Graph.swift */; };
+		6CE9E66A294E4002003D3C91 /* Tetris.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CE9E669294E4002003D3C91 /* Tetris.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -49,6 +50,7 @@
 		6C9E2448294B772F001FA794 /* SensorBeacon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SensorBeacon.swift; sourceTree = "<group>"; };
 		6CB741A0294CDB73003EFE8E /* Valves.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Valves.swift; sourceTree = "<group>"; };
 		6CB741A2294CE6C4003EFE8E /* Graph.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Graph.swift; sourceTree = "<group>"; };
+		6CE9E669294E4002003D3C91 /* Tetris.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tetris.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -84,6 +86,7 @@
 				6C72003129426619002E0D6C /* Grid.swift */,
 				6CB741A2294CE6C4003EFE8E /* Graph.swift */,
 				6C72FF5C2940FAEF002E0D6C /* main.swift */,
+				6CE9E669294E4002003D3C91 /* Tetris.swift */,
 				6CB741A0294CDB73003EFE8E /* Valves.swift */,
 				6C9E2448294B772F001FA794 /* SensorBeacon.swift */,
 				6C9E235C294A376A001FA794 /* Sand.swift */,
@@ -158,6 +161,7 @@
 			files = (
 				6CB741A1294CDB73003EFE8E /* Valves.swift in Sources */,
 				6CB741A3294CE6C4003EFE8E /* Graph.swift in Sources */,
+				6CE9E66A294E4002003D3C91 /* Tetris.swift in Sources */,
 				6C720034294394DC002E0D6C /* RopeBridge.swift in Sources */,
 				6C72FF6429413E97002E0D6C /* firstSeven.swift in Sources */,
 				6C7202B02947AED3002E0D6C /* HillClimb.swift in Sources */,
