@@ -52,6 +52,8 @@ case 16:
     print(valves(contents))
 case 17:
     print(tetris(contents))
+case 18:
+    print(voxels(contents))
 default:
     print("unknown problem")
     exit(2)
