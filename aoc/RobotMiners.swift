@@ -132,6 +132,16 @@ func robotMiners(_ contents: String, part2: Bool = false) -> Int {
                 // If we're in the second to last minute, if we aren't making a geode robot, nothing else will help.
                 state.collect()
                 states.append(state)
+            } else if state.time == (endTime-3) {
+                // If we're in the third to last minute, we either make an obsidian robot in order to make a geode robot next minute, or give up.
+                // (Getting 1 more ore bot will never help because building it takes at least the 1 ore it'll make next minute.)
+                var next = state
+                next.collect()
+                if next.obsidian < blueprint.geodeRobotObsidian, state.ore >= blueprint.obsidianRobotOre, state.clay >= blueprint.obsidianRobotClay {
+                    states.append(state.buildingObsidianRobot())
+                } else {
+                    states.append(next)
+                }
             } else if state.obsidianRobots == 0, state.ore >= blueprint.obsidianRobotOre, state.clay >= blueprint.obsidianRobotClay {
                 // If we don't have any obsidian robots yet and can make one that's an obvious second choice.
                 states.append(state.buildingObsidianRobot())
