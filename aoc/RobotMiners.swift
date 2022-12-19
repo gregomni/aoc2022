@@ -109,13 +109,16 @@ func robotMiners(_ contents: String, part2: Bool = false) -> Int {
     let endTime = part2 ? 32 : 24
 
     for blueprint in blueprints {
+        let elapsed = Date()
         var best: Int = 0
         var states = [RobotState(blueprint: blueprint)]
-        
+
         while !states.isEmpty {
             var state = states.popLast()!
 
-            if state.time == endTime {
+            // Building something new in the last minute doesn't make any difference so always just collect in the last minute
+            if state.time == (endTime-1) {
+                state.collect()
                 if best < state.geode {
                     best = state.geode
                 }
@@ -125,6 +128,10 @@ func robotMiners(_ contents: String, part2: Bool = false) -> Int {
             if state.ore >= blueprint.geodeRobotOre, state.obsidian >= blueprint.geodeRobotObsidian {
                 // If we can make a geode robot, definitely always just make a geode robot.
                 states.append(state.buildingGeodeRobot())
+            } else if state.time == (endTime-2) {
+                // If we're in the second to last minute, if we aren't making a geode robot, nothing else will help.
+                state.collect()
+                states.append(state)
             } else if state.obsidianRobots == 0, state.ore >= blueprint.obsidianRobotOre, state.clay >= blueprint.obsidianRobotClay {
                 // If we don't have any obsidian robots yet and can make one that's an obvious second choice.
                 states.append(state.buildingObsidianRobot())
@@ -144,7 +151,7 @@ func robotMiners(_ contents: String, part2: Bool = false) -> Int {
                 states.append(state)
             }
         }
-        print("blueprint #\(blueprintNumber), best: \(best)")
+        print("blueprint #\(blueprintNumber), best: \(best), elapsed: \(-elapsed.timeIntervalSinceNow)")
         if part2 {
             total *= best
         } else {
