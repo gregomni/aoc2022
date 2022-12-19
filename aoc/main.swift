@@ -54,6 +54,8 @@ case 17:
     print(tetris(contents))
 case 18:
     print(voxels(contents))
+case 19:
+    print(robotMiners(contents))
 default:
     print("unknown problem")
     exit(2)
