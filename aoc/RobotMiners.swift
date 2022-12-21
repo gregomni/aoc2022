@@ -100,14 +100,18 @@ func robotMiners(_ contents: String, part2: Bool = false) -> Int {
         blueprints.append(Blueprint(oreRobotOre: match.output.1, clayRobotOre: match.output.2, obsidianRobotOre: match.output.3, obsidianRobotClay: match.output.4, geodeRobotOre: match.output.5, geodeRobotObsidian: match.output.6))
     }
 
-    var blueprintNumber = 1
-    var total = part2 ? 1 : 0
-
+    var total: Int
+    let endTime: Int
     if part2 {
+        total = 1
+        endTime = 32
         blueprints.replaceSubrange(3..., with: [])
+    } else {
+        total = 0
+        endTime = 24
     }
-    let endTime = part2 ? 32 : 24
 
+    var blueprintNumber = 1
     for blueprint in blueprints {
         let elapsed = Date()
         var best: Int = 0
