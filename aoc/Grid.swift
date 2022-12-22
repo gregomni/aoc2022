@@ -15,8 +15,14 @@ class Grid<Element> : Collection, Sequence {
     convenience init(contents: String, mapping: @escaping (Character) -> Element) {
         self.init()
 
+        var lines = contents.components(separatedBy: "\n")
+        let max = lines.map({ $0.count }).max()!
+        for i in lines.indices {
+            lines[i].append(String(repeating: " ", count: max - lines[i].count))
+        }
+
         var map: [[Element]] = []
-        contents.enumerateLines { line, _ in
+        for line in lines {
             map.append(line.map(mapping))
         }
         elements = map
@@ -50,6 +56,28 @@ class Grid<Element> : Collection, Sequence {
         case right
         case up
         case down
+
+        func turnClockwise() -> Direction {
+            switch self {
+            case .left: return .up
+            case .right: return .down
+            case .up: return .right
+            case .down: return .left
+            }
+        }
+
+        func turnCCW() -> Direction {
+            switch self {
+            case .left: return .down
+            case .right: return .up
+            case .up: return .left
+            case .down: return .right
+            }
+        }
+
+        func opposite() -> Direction {
+            return self.turnClockwise().turnClockwise()
+        }
     }
 
     func cardinalDirections(from: Index) -> [Index] {

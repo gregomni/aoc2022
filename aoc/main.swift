@@ -60,6 +60,8 @@ case 20:
     print(twenty(contents))
 case 21:
     print(monkeyShouts(contents))
+case 22:
+    print(wrappingMap(contents))
 default:
     print("unknown problem")
     exit(2)
