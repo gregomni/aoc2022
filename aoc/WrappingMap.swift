@@ -14,20 +14,114 @@ enum WalkSpot: Character {
     case void = " "
 }
 
+typealias Pos = Grid<WalkSpot>.Index
+typealias Dir = Grid<WalkSpot>.Direction
+
 enum Turn: String {
     case clockwise = "R"
     case ccw = "L"
 }
 
-func wrappingMap(_ contents: String, part2: Bool = true) -> Int {
-    typealias Pos = Grid<WalkSpot>.Index
-    typealias Dir = Grid<WalkSpot>.Direction
+extension Grid where Element == WalkSpot {
+    // the flattened cube has to be 4x3, so the long side / 4 is the face length
+    var cubeSize: Int { Swift.max(xSize, ySize) / 4 }
+}
 
+extension Collection where Element: Equatable {
+    func eachPermutation(_ body: (Element, Element) -> Void) {
+        for a in self {
+            for b in self {
+                guard a != b else { continue }
+                body(a, b)
+            }
+        }
+    }
+}
+
+class CubeFace: Equatable {
+    let x: Int
+    let y: Int
+    let grid: Grid<WalkSpot>
+    var exit: [Dir : (face: CubeFace, edge: Dir)] = [:]
+
+    init(x: Int, y: Int, grid: Grid<WalkSpot>) {
+        self.x = x
+        self.y = y
+        self.grid = grid
+    }
+
+    var minX: Int { x * grid.cubeSize }
+    var maxX: Int { minX + grid.cubeSize - 1 }
+    var minY: Int { y * grid.cubeSize }
+    var maxY: Int { minY + grid.cubeSize - 1 }
+
+    func contains(_ p: Pos) -> Bool {
+        p.x >= minX && p.x <= maxX && p.y >= minY && p.y <= maxY
+    }
+
+    static func ==(lhs: CubeFace, rhs: CubeFace) -> Bool {
+        return lhs.x == rhs.x && lhs.y == rhs.y
+    }
+
+    static func findFacesFor(grid: Grid<WalkSpot>) -> [CubeFace] {
+        var cubeFaces: [CubeFace] = []
+        let size = grid.cubeSize
+        for x in 0 ..< grid.xSize / size {
+            for y in 0 ..< grid.ySize / size {
+                guard grid[Pos(x: x * size, y: y * size)] != .void else { continue }
+                cubeFaces.append(CubeFace(x: x, y: y, grid: grid))
+            }
+        }
+        assert(cubeFaces.count == 6)
+
+        // 'fold' faces, where they are already connected in the flat grid
+        var connections = 0
+        cubeFaces.eachPermutation { a, b in
+            if a.y == b.y, b.x - a.x == 1 {
+                a.exit[.right] = (b, .left)
+                b.exit[.left] = (a, .right)
+                connections += 2
+            } else if a.x == b.x, b.y - a.y == 1 {
+                a.exit[.down] = (b, .up)
+                b.exit[.up] = (a, .down)
+                connections += 2
+            }
+        }
+        assert(connections == 10)
+
+        // look for corners, where 3 faces are already connected in an L
+        repeat {
+            for a in cubeFaces {
+                for d in Dir.allCases {
+                    guard let (b, bEntry) = a.exit[d] else { continue }
+                    if let (c, cEntry) = b.exit[bEntry.turnCCW()] {
+                        guard a.exit[d.turnClockwise()] == nil else { continue }
+                        a.exit[d.turnClockwise()] = (c, cEntry.turnCCW())
+                        c.exit[cEntry.turnCCW()] = (a, d.turnClockwise())
+                        connections += 2
+                    }
+                    if let (c, cEntry) = b.exit[bEntry.turnClockwise()] {
+                        guard a.exit[d.turnCCW()] == nil else { continue }
+                        a.exit[d.turnCCW()] = (c, cEntry.turnClockwise())
+                        c.exit[cEntry.turnClockwise()] = (a, d.turnCCW())
+                        connections += 2
+                    }
+                }
+            }
+        } while connections < 24
+
+        return cubeFaces
+    }
+}
+
+func wrappingMap(_ contents: String, part2: Bool = true) -> Int {
     // Split the input into map and instructions
     let parts = contents.components(separatedBy: "\n\n")
     assert(parts.count == 2)
     let grid = Grid(contents: parts[0]) { WalkSpot(rawValue: $0)! }
     let instructions = parts[1]
+
+    let cubeFaces = CubeFace.findFacesFor(grid: grid)
 
     // Start at x= first non void, y = 0
     var position = Pos()
@@ -48,64 +142,34 @@ func wrappingMap(_ contents: String, part2: Bool = true) -> Int {
     }
     let moves = instructions.matches(of: regex)
 
-    // Map a position to a cube face
-    func mapPart(_ p: Pos) -> Int {
-        let xPortion = p.x / (grid.xSize / 3)
-        let yPortion = p.y / (grid.ySize / 4)
-        switch (xPortion, yPortion) {
-        case (1, 0): return 1
-        case (2, 0): return 2
-        case (1, 1): return 3
-        case (0, 2): return 4
-        case (1, 2): return 5
-        case (0, 3): return 6
-        default:
-            assertionFailure("not part of the cube")
-            return -1
-        }
-    }
-
-    // Map a cube face back to flat x,y of where that cube face lies
-    func cubeFaceToMapPart(_ cubeFace: Int) -> (x: Int, y: Int) {
-        switch cubeFace {
-        case 1: return (1, 0)
-        case 2: return (2, 0)
-        case 3: return (1, 1)
-        case 4: return (0, 2)
-        case 5: return (1, 2)
-        case 6: return (0, 3)
-        default:
-            exit(4)
-        }
-    }
-
-    // Given a direction you left a cube face and an edge on which you entered, where do you end up?
+    // Given a position and direction you left a cube face, where do you end up?
     // (The direction you face is always away from the edge you entered on.)
-    func cubeEntryPoint(_ p: Pos, _ face: Dir, _ cubeFace: Int, _ entrySide: Dir) -> (Pos, Dir) {
-        let mapPart = cubeFaceToMapPart(cubeFace)
-        let cubeSize = max(grid.xSize, grid.ySize) / 4
+    func cubeEntryPoint(_ p: Pos, _ direction: Dir) -> (Pos, Dir) {
+        let source = cubeFaces.first(where: { $0.contains(p) })!
+        let (dest, entrySide) = source.exit[direction]!
+        let cubeSize = grid.cubeSize
 
         // the min and max coords for the destination cube face square
-        let cubeMins = (x: mapPart.x * cubeSize, y: mapPart.y * cubeSize)
-        let cubeMaxs = (x: cubeMins.x + cubeSize - 1, y: cubeMins.y + cubeSize - 1)
+        let cubeMins = (x: dest.minX, y: dest.minY)
+        let cubeMaxs = (x: dest.maxX, y: dest.maxY)
 
         // the origin coords from the original cube face
         let pX = p.x % cubeSize
         let pY = p.y % cubeSize
 
         let newP: Pos
-        switch (face, entrySide) {
+        switch (direction, entrySide) {
         // Wrapping straight around (e.g. exit going left, enter on the right)
         // The coord you enter on is the same one you exited from.
-        case (.left, .right): newP = Pos(x: cubeMaxs.0, y: cubeMins.y + pY)
-        case (.right, .left): newP = Pos(x: cubeMins.0, y: cubeMins.y + pY)
-        case (.up, .down): newP = Pos(x: cubeMins.x + pX, y: cubeMaxs.1)
-        case (.down, .up): newP = Pos(x: cubeMins.x + pX, y: cubeMins.1)
+        case (.left, .right): newP = Pos(x: cubeMaxs.x, y: cubeMins.y + pY)
+        case (.right, .left): newP = Pos(x: cubeMins.x, y: cubeMins.y + pY)
+        case (.up, .down): newP = Pos(x: cubeMins.x + pX, y: cubeMaxs.y)
+        case (.down, .up): newP = Pos(x: cubeMins.x + pX, y: cubeMins.y)
         // The coord you enter on is mirror-image the one you exit from.
-        case (.left, .left): newP = Pos(x: cubeMins.0, y: cubeMaxs.y - pY)
-        case (.right, .right): newP = Pos(x: cubeMaxs.0, y: cubeMaxs.y - pY)
-        case (.up, .up): newP = Pos(x: cubeMaxs.x - pX, y: cubeMins.1)
-        case (.down, .down): newP = Pos(x: cubeMaxs.x - pX, y: cubeMaxs.1)
+        case (.left, .left): newP = Pos(x: cubeMins.x, y: cubeMaxs.y - pY)
+        case (.right, .right): newP = Pos(x: cubeMaxs.x, y: cubeMaxs.y - pY)
+        case (.up, .up): newP = Pos(x: cubeMaxs.x - pX, y: cubeMins.y)
+        case (.down, .down): newP = Pos(x: cubeMaxs.x - pX, y: cubeMaxs.y)
         // The same as the above cases but now involves swapping x and y in the coord you exit/enter.
         case (.left, .up): newP = Pos(x: cubeMins.x + pY, y: cubeMins.y)
         case (.right, .up): newP = Pos(x: cubeMaxs.x - pY, y: cubeMins.y)
@@ -120,47 +184,24 @@ func wrappingMap(_ contents: String, part2: Bool = true) -> Int {
     }
 
     // Take one step, doing wrapping as necessary.
-    // For part 1 this loops around the whole grid.
-    // For part 2 this is how I form a cube specificly from my input data.
-    // (It's possible other input data arranges the 6 faces in the flat grid differently than mine did.)
-    func wrappedStep(_ p: Pos, _ face: Dir) -> (Pos, Dir) {
-        var newP = p.direction(face)
+    func wrappedStep(_ p: Pos, _ direction: Dir) -> (Pos, Dir) {
+        var newP = p.direction(direction)
 
         if part2 {
             if grid.valid(index: newP), grid[newP] != .void {
-                return (newP, face)
+                return (newP, direction)
             }
-            let mapPart = mapPart(p)
-
-            switch (mapPart, face) {
-            case (1, .up): return cubeEntryPoint(p, face, 6, .left)
-            case (1, .left): return cubeEntryPoint(p, face, 4, .left)
-            case (2, .up): return cubeEntryPoint(p, face, 6, .down)
-            case (2, .right): return cubeEntryPoint(p, face, 5, .right)
-            case (2, .down): return cubeEntryPoint(p, face, 3, .right)
-            case (3, .left): return cubeEntryPoint(p, face, 4, .up)
-            case (3, .right): return cubeEntryPoint(p, face, 2, .down)
-            case (4, .up): return cubeEntryPoint(p, face, 3, .left)
-            case (4, .left): return cubeEntryPoint(p, face, 1, .left)
-            case (5, .right): return cubeEntryPoint(p, face, 2, .right)
-            case (5, .down): return cubeEntryPoint(p, face, 6, .right)
-            case (6, .left): return cubeEntryPoint(p, face, 1, .up)
-            case (6, .right): return cubeEntryPoint(p, face, 5, .down)
-            case (6, .down): return cubeEntryPoint(p, face, 2, .up)
-            default:
-                assertionFailure("invalid combination of cubeface and direction")
-                exit(3)
-            }
+            return cubeEntryPoint(p, direction)
         } else {
-            guard !grid.valid(index: newP) else { return (newP, face) }
+            guard !grid.valid(index: newP) else { return (newP, direction) }
 
-            switch face {
+            switch direction {
             case .left: newP = Pos(x: grid.xSize-1, y: p.y)
             case .right: newP = Pos(x: 0, y: p.y)
             case .up: newP = Pos(x: p.x, y: grid.ySize-1)
             case .down: newP = Pos(x: p.x, y: 0)
             }
-            return (newP, face)
+            return (newP, direction)
         }
     }
 
