@@ -118,7 +118,7 @@ func wrappingMap(_ contents: String, part2: Bool = true) -> Int {
     // Split the input into map and instructions
     let parts = contents.components(separatedBy: "\n\n")
     assert(parts.count == 2)
-    let grid = Grid(contents: parts[0]) { WalkSpot(rawValue: $0)! }
+    let grid = Grid(contents: parts[0], makeSameWidth: true) { WalkSpot(rawValue: $0)! }
     let instructions = parts[1]
 
     let cubeFaces = CubeFace.findFacesFor(grid: grid)

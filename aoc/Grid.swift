@@ -12,17 +12,24 @@ class Grid<Element> : Collection, Sequence {
 
     init() {}
 
-    convenience init(contents: String, mapping: @escaping (Character) -> Element) {
+    init(copy grid: Grid) {
+        elements = grid.elements
+    }
+
+    convenience init(contents: String, makeSameWidth: Bool = false, mapping: @escaping (Character) -> Element) {
         self.init()
 
         var lines = contents.components(separatedBy: "\n")
-        let max = lines.map({ $0.count }).max()!
-        for i in lines.indices {
-            lines[i].append(String(repeating: " ", count: max - lines[i].count))
+        if makeSameWidth {
+            let max = lines.map({ $0.count }).max()!
+            for i in lines.indices {
+                lines[i].append(String(repeating: " ", count: max - lines[i].count))
+            }
         }
 
         var map: [[Element]] = []
         for line in lines {
+            guard !line.isEmpty else { continue }
             map.append(line.map(mapping))
         }
         elements = map

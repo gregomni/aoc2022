@@ -62,8 +62,13 @@ case 21:
     print(monkeyShouts(contents))
 case 22:
     print(wrappingMap(contents))
+case 23:
+    print(plantings(contents))
+case 24:
+    print(blizzard(contents))
 default:
     print("unknown problem")
     exit(2)
 }
 exit(0)
+
