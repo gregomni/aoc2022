@@ -91,6 +91,19 @@ class Grid<Element> : Collection, Sequence {
         Direction.allCases.map({ from.direction($0) }).filter { valid(index: $0) }
     }
 
+    func diagonalAdjacencies(from: Index) -> [Index] {
+        var result: [Index] = []
+        for x in [from.x-1, from.x, from.x+1] {
+            for y in [from.y-1, from.y, from.y+1] {
+                let index = Index(x: x, y: y)
+                if index != from, valid(index: index) {
+                    result.append(index)
+                }
+            }
+        }
+        return result
+    }
+
     struct Iterator: IteratorProtocol {
         let grid: Grid
         var i = Index()
