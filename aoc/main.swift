@@ -32,6 +32,8 @@ case 6:
     print(daySix(contents))
 case 7:
     print(camelCards(contents))
+case 8:
+    print(ghostCamels(contents))
 default:
     print("unknown problem")
     exit(2)

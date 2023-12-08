@@ -9,13 +9,7 @@ import Foundation
 
 extension Array {
     func number(where f: (Element) -> Bool) -> Int {
-        var result = 0
-        for element in self {
-            if f(element) {
-                result += 1
-            }
-        }
-        return result
+        return self.reduce(into: 0) { $0 += f($1) ? 1 : 0 }
     }
 }
 
@@ -47,8 +41,7 @@ func camelCards(_ contents: String) -> Int {
             }
             if numbers.isEmpty { self = .high }
             else if numbers.count > 1 {
-                if wild > 0 { self = .fullHouse }
-                else if numbers.firstIndex(of: 3) != nil { self = .fullHouse }
+                if wild > 0 || numbers.firstIndex(of: 3) != nil { self = .fullHouse }
                 else { self = .twoPair }
             } else {
                 switch numbers.first! + wild {
