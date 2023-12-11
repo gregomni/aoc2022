@@ -34,6 +34,12 @@ case 7:
     print(camelCards(contents))
 case 8:
     print(ghostCamels(contents))
+case 9:
+    print(mirage(contents))
+case 10:
+    print(fullOfPipes(contents))
+case 11:
+    print(cosmicExpansion(contents))
 default:
     print("unknown problem")
     exit(2)

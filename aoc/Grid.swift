@@ -150,6 +150,16 @@ class Grid<Element> : Collection, Sequence {
         }
     }
 
+    func at(x: Int, y: Int) -> Index { Index(x: x, y: y) }
+    subscript(x: Int, y: Int) -> Element {
+        get {
+            elements[y][x]
+        }
+        set {
+            elements[y][x] = newValue
+        }
+    }
+
     // Needed this for Collection conformance, but completely untested
     struct IndexRange : RangeExpression {
         let lowerBound: Index
