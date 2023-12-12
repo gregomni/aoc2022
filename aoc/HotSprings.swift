@@ -13,13 +13,7 @@ func hotSprings(_ contents: String) -> Int {
     struct State {
         var groupIndex = 0
         var brokeCount = 0
-        var copies = 0
-
-        init(groupIndex: Int, brokeCount: Int, copies: Int = 1) {
-            self.groupIndex = groupIndex
-            self.brokeCount = brokeCount
-            self.copies = copies
-        }
+        var copies = 1
     }
 
     func applyDot(groups: [Int], possibilities: [State]) -> [State] {
@@ -61,8 +55,8 @@ func hotSprings(_ contents: String) -> Int {
 
     func combinePossibilities(_ possibilities: [State]) -> [State] {
         struct PartialState: Hashable {
-            var groupIndex = 0
-            var brokeCount = 0
+            let groupIndex: Int
+            let brokeCount: Int
         }
 
         var counts: [PartialState : Int] = [:]
@@ -88,7 +82,7 @@ func hotSprings(_ contents: String) -> Int {
         }
         groups = longGroups
 
-        var possibilities = [State(groupIndex: 0, brokeCount: 0)]
+        var possibilities = [State()]
         for i in 0 ..< 5 {
             for c in springs {
                 if c == "." {
@@ -107,6 +101,5 @@ func hotSprings(_ contents: String) -> Int {
         let matches = possibilities.reduce(0, { $0 + $1.copies })
         total += matches
     }
-
     return total
 }
