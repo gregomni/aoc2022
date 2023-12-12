@@ -40,9 +40,10 @@ case 10:
     print(fullOfPipes(contents))
 case 11:
     print(cosmicExpansion(contents))
+case 12:
+    print(hotSprings(contents))
 default:
     print("unknown problem")
     exit(2)
 }
 exit(0)
-
