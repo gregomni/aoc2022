@@ -42,8 +42,54 @@ case 11:
     print(cosmicExpansion(contents))
 case 12:
     print(hotSprings(contents))
+case 13:
+    print(mirrors(contents))
+case 14:
+    print(parabolicReflector(contents))
+case 15:
+    print(dayFifteen(contents))
 default:
     print("unknown problem")
     exit(2)
 }
 exit(0)
+
+func dayFifteen(_ contents: String) -> Int {
+    struct Lens {
+        let name: String
+        let focal: Int
+    }
+    var boxes: [[Lens]] = Array(repeating: [], count: 256)
+
+    for instruction in contents.replacingOccurrences(of: "\n", with: "").components(separatedBy: ",") {
+        var value = 0
+        var name = ""
+        for c in instruction {
+            if c == "=" {
+                let new = Lens(name: name, focal: Int(instruction.suffix(1))!)
+                if let index = boxes[value].firstIndex(where: {$0.name == name}) {
+                    boxes[value][index] = new
+                } else {
+                    boxes[value].append(new)
+                }
+            } else if c == "-" {
+                if let index = boxes[value].firstIndex(where: {$0.name == name}) {
+                    boxes[value].remove(at: index)
+                }
+            } else {
+                name.append(c)
+                value += Int(c.asciiValue!)
+                value *= 17
+                value = value % 256
+            }
+        }
+    }
+
+    var total = 0
+    for i in boxes.indices {
+        for j in boxes[i].indices {
+            total += (1+i)*(1+j)*boxes[i][j].focal
+        }
+    }
+    return total
+}

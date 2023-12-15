@@ -214,6 +214,18 @@ class Grid<Element> : Collection, Sequence {
     }
 }
 
+extension Grid: Equatable where Element: Equatable {
+    static func == (lhs: Grid<Element>, rhs: Grid<Element>) -> Bool {
+        lhs.elements == rhs.elements
+    }
+}
+
+extension Grid: Hashable where Element: Hashable {
+    func hash(into hasher: inout Hasher) {
+        elements.hash(into: &hasher)
+    }
+}
+
 import CoreGraphics
 import ImageIO
 import UniformTypeIdentifiers
@@ -235,3 +247,14 @@ extension Grid {
     }
 }
 
+extension Grid where Element == Character {
+    func printGrid() {
+        for y in 0 ..< ySize {
+            var string = ""
+            for x in 0 ..< xSize {
+                string.append(self[x,y])
+            }
+            print(string)
+        }
+    }
+}
