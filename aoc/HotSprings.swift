@@ -8,98 +8,78 @@
 import Foundation
 
 func hotSprings(_ contents: String) -> Int {
+    enum NodeType {
+        case startOfGroup
+        case midGroup
+        case endOfGroup
+        case finished
+
+        var operationalMove: Int? {
+            switch self {
+            case .startOfGroup, .finished: return 0
+            case .midGroup: return nil
+            case .endOfGroup: return 1
+            }
+        }
+        var damagedMove: Int? {
+            switch self {
+            case .startOfGroup, .midGroup: return 1
+            case .endOfGroup, .finished: return nil
+            }
+        }
+    }
+
+    func makeNodeTypes(groups: [Int]) -> [NodeType] {
+        var result: [NodeType] = []
+        for group in groups {
+            result.append(.startOfGroup)
+            for _ in 0 ..< (group-1) {
+                result.append(.midGroup)
+            }
+            result.append(.endOfGroup)
+        }
+        result.append(.finished)
+        return result
+    }
+
+    func next(_ c: Character, nodes: [NodeType], counts: inout [Int]) {
+        let operationMove = c != "#"
+        let damageMove = c != "."
+        for i in nodes.indices.reversed() {
+            let n = counts[i]
+            guard n > 0 else { continue }
+            counts[i] = 0
+            if damageMove, let move = nodes[i].damagedMove {
+                counts[i+move] += n
+            }
+            if operationMove, let move = nodes[i].operationalMove {
+                counts[i+move] += n
+            }
+        }
+    }
+
     var total = 0
-
-    struct State {
-        var groupIndex = 0
-        var brokeCount = 0
-        var copies = 1
-    }
-
-    func applyDot(groups: [Int], possibilities: [State]) -> [State] {
-        return possibilities.compactMap { state in
-            if state.brokeCount == 0 {
-                return state
-            }
-            guard state.groupIndex < groups.count else { return nil }
-            guard state.brokeCount == groups[state.groupIndex] else { return nil }
-            return State(groupIndex: state.groupIndex+1, brokeCount: 0, copies: state.copies)
-        }
-    }
-
-    func applyHash(groups: [Int], possibilities: [State]) -> [State] {
-        return possibilities.compactMap { state in
-            guard state.groupIndex < groups.count else { return nil }
-            guard state.brokeCount < groups[state.groupIndex] else { return nil }
-            return State(groupIndex: state.groupIndex, brokeCount: state.brokeCount+1, copies: state.copies)
-        }
-    }
-
-    func applyQuestion(groups: [Int], possibilities: [State]) -> [State] {
-        let dot = applyDot(groups: groups, possibilities: possibilities)
-        let hash = applyHash(groups: groups, possibilities: possibilities)
-        return combinePossibilities(dot + hash)
-    }
-
-    func applyDone(groups: [Int], possibilities: [State]) -> [State] {
-        return possibilities.compactMap { state in
-            if state.brokeCount > 0 {
-                guard state.groupIndex+1 == groups.count else { return nil }
-                guard state.brokeCount == groups[state.groupIndex] else { return nil }
-            } else {
-                guard state.groupIndex == groups.count else { return nil }
-            }
-            return state
-        }
-    }
-
-    func combinePossibilities(_ possibilities: [State]) -> [State] {
-        struct PartialState: Hashable {
-            let groupIndex: Int
-            let brokeCount: Int
-        }
-
-        var counts: [PartialState : Int] = [:]
-        for p in possibilities {
-            let partial = PartialState(groupIndex: p.groupIndex, brokeCount: p.brokeCount)
-            if let match = counts[partial] {
-                counts[partial] = match + p.copies
-            } else {
-                counts[partial] = p.copies
-            }
-        }
-        return counts.map { key, value in State(groupIndex: key.groupIndex, brokeCount: key.brokeCount, copies: value) }
-    }
-
     contents.enumerateLines { line, _ in
         let parts = line.split(separator: " ")
         let springs = parts[0]
-        var groups = parts[1].split(separator: ",").map({ Int($0)! })
+        let groups = parts[1].split(separator: ",").map({ Int($0)! })
 
         var longGroups: [Int] = []
         for _ in 0 ..< 5 {
             longGroups.append(contentsOf: groups)
         }
-        groups = longGroups
-
-        var possibilities = [State()]
+        let nodes = makeNodeTypes(groups: longGroups)
+        var counts = Array(repeating: 0, count: nodes.count)
+        counts[0] = 1
         for i in 0 ..< 5 {
             for c in springs {
-                if c == "." {
-                    possibilities = applyDot(groups: groups, possibilities: possibilities)
-                } else if c == "#" {
-                    possibilities = applyHash(groups: groups, possibilities: possibilities)
-                } else if c == "?" {
-                    possibilities = applyQuestion(groups: groups, possibilities: possibilities)
-                }
+                next(c, nodes: nodes, counts: &counts)
             }
             if i != 4 {
-                possibilities = applyQuestion(groups: groups, possibilities: possibilities)
+                next("?", nodes: nodes, counts: &counts)
             }
         }
-        possibilities = applyDone(groups: groups, possibilities: possibilities)
-        let matches = possibilities.reduce(0, { $0 + $1.copies })
-        total += matches
+        total += counts[nodes.count-1] + counts[nodes.count-2]
     }
     return total
 }
