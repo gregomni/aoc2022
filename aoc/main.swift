@@ -47,49 +47,99 @@ case 13:
 case 14:
     print(parabolicReflector(contents))
 case 15:
-    print(dayFifteen(contents))
+    print(lensLibrary(contents))
+case 16:
+    print(sixteen(contents))
 default:
     print("unknown problem")
     exit(2)
 }
 exit(0)
 
-func dayFifteen(_ contents: String) -> Int {
-    struct Lens {
-        let name: String
-        let focal: Int
+func sixteen(_ contents: String) -> Int {
+    var total = 0
+    struct Beams {
+        let mirror: Character
+        var beams: [Grid<Beams>.Direction] = []
     }
-    var boxes: [[Lens]] = Array(repeating: [], count: 256)
 
-    for instruction in contents.replacingOccurrences(of: "\n", with: "").components(separatedBy: ",") {
-        var value = 0
-        var name = ""
-        for c in instruction {
-            if c == "=" {
-                let new = Lens(name: name, focal: Int(instruction.suffix(1))!)
-                if let index = boxes[value].firstIndex(where: {$0.name == name}) {
-                    boxes[value][index] = new
-                } else {
-                    boxes[value].append(new)
-                }
-            } else if c == "-" {
-                if let index = boxes[value].firstIndex(where: {$0.name == name}) {
-                    boxes[value].remove(at: index)
-                }
-            } else {
-                name.append(c)
-                value += Int(c.asciiValue!)
-                value *= 17
-                value = value % 256
+    let initialGrid = Grid(contents: contents, mapping: { Beams(mirror: $0) })
+    var grid = initialGrid
+
+    func addBeam(_ at: Grid<Beams>.Index, dir: Grid<Beams>.Direction) {
+        guard grid.valid(index: at) else { return }
+        guard !grid[at].beams.contains(dir) else { return }
+
+        grid[at].beams.append(dir)
+        switch grid[at].mirror {
+        case ".":
+            addBeam(at.direction(dir), dir: dir)
+        case "/":
+            let newDir: Grid<Beams>.Direction
+            switch dir {
+            case .up: newDir = .right
+            case .down: newDir = .left
+            case .left: newDir = .down
+            case .right: newDir = .up
+            }
+            addBeam(at.direction(newDir), dir: newDir)
+        case "\\":
+            let newDir: Grid<Beams>.Direction
+            switch dir {
+            case .up: newDir = .left
+            case .down: newDir = .right
+            case .left: newDir = .up
+            case .right: newDir = .down
+            }
+            addBeam(at.direction(newDir), dir: newDir)
+        case "|":
+            switch dir {
+            case .left, .right:
+                addBeam(at.direction(.up), dir: .up)
+                addBeam(at.direction(.down), dir: .down)
+            default:
+                addBeam(at.direction(dir), dir: dir)
+            }
+        case "-":
+            switch dir {
+            case .up, .down:
+                addBeam(at.direction(.left), dir: .left)
+                addBeam(at.direction(.right), dir: .right)
+            default:
+                addBeam(at.direction(dir), dir: dir)
+            }
+        default:
+            break
+        }
+
+    }
+
+    func check() -> Int {
+        var total = 0
+        for beams in grid {
+            if !beams.beams.isEmpty {
+                total += 1
             }
         }
+        return total
     }
 
-    var total = 0
-    for i in boxes.indices {
-        for j in boxes[i].indices {
-            total += (1+i)*(1+j)*boxes[i][j].focal
-        }
+    for x in 0 ..< grid.xSize {
+        grid = Grid(copy: initialGrid)
+        addBeam(grid.at(x: x, y: 0), dir: .down)
+        total = max(total, check())
+        grid = Grid(copy: initialGrid)
+        addBeam(grid.at(x: x, y: grid.ySize - 1), dir: .up)
+        total = max(total, check())
     }
+    for y in 0 ..< grid.ySize {
+        grid = Grid(copy: initialGrid)
+        addBeam(grid.at(x: 0, y: y), dir: .right)
+        total = max(total, check())
+        grid = Grid(copy: initialGrid)
+        addBeam(grid.at(x: grid.xSize-1, y: y), dir: .left)
+        total = max(total, check())
+    }
+
     return total
 }
