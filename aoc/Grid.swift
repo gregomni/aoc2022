@@ -58,11 +58,22 @@ class Grid<Element> : Collection, Sequence {
         index.x >= 0 && index.x < xSize && index.y >= 0 && index.y < ySize
     }
 
-    enum Direction: CaseIterable {
+    enum Direction: Int, CaseIterable {
         case left
         case right
         case up
         case down
+
+        var horizontal: Bool {
+            switch self {
+            case .left, .right: return true
+            default: return false
+            }
+        }
+
+        var vertical: Bool {
+            return !horizontal
+        }
 
         func turnClockwise() -> Direction {
             switch self {
