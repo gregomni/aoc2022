@@ -55,15 +55,10 @@ case 17:
 case 18:
     print(eighteen(contents))
 case 19:
-    print(nineteen(contents))
+    print(aplenty(contents))
 default:
     print("unknown problem")
     exit(2)
 }
 exit(0)
 
-func nineteen(_ contents: String) -> Int {
-    let lines = contents.components(separatedBy: "\n")
-
-    return lines.count
-}
