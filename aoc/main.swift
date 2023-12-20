@@ -56,6 +56,8 @@ case 18:
     print(eighteen(contents))
 case 19:
     print(aplenty(contents))
+case 20:
+    print(pulsePropogation(contents))
 default:
     print("unknown problem")
     exit(2)

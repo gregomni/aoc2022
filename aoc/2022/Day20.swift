@@ -7,7 +7,7 @@
 
 import Foundation
 
-func twenty_part1(_ contents: String) -> Int {
+func twenty2022_part1(_ contents: String) -> Int {
     let numbers = contents.components(separatedBy: "\n").filter({ !$0.isEmpty }).map({ Int($0)! })
     let count = numbers.count
     var mixed = Array(zip(numbers, 0 ..< count))
@@ -32,7 +32,7 @@ func twenty_part1(_ contents: String) -> Int {
     return first.0 + second.0 + third.0
 }
 
-func twenty(_ contents: String) -> Int {
+func twenty2022(_ contents: String) -> Int {
     let numbers = contents.components(separatedBy: "\n").filter({ !$0.isEmpty }).map({ Int($0)! * 811589153 })
     let count = numbers.count
     var mixed = Array(zip(numbers, 0 ..< count))
