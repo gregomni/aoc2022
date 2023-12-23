@@ -159,6 +159,14 @@ class Grid<Element> : Collection, Sequence {
             if y > to.y { return .up }
             return .down
         }
+
+        func wrap(in grid: Grid<Element>) -> Self {
+            var x = self.x % grid.xSize
+            var y = self.y % grid.ySize
+            if x < 0 { x += grid.xSize }
+            if y < 0 { y += grid.ySize }
+            return grid.at(x: x, y: y)
+        }
     }
 
     func at(x: Int, y: Int) -> Index { Index(x: x, y: y) }
@@ -258,14 +266,21 @@ extension Grid {
     }
 }
 
-extension Grid where Element == Character {
-    func printGrid() {
+extension Grid {
+    func printGrid(_ f: (Element) -> Character) {
         for y in 0 ..< ySize {
             var string = ""
             for x in 0 ..< xSize {
-                string.append(self[x,y])
+                string.append(f(self[x,y]))
             }
             print(string)
         }
     }
 }
+
+extension Grid where Element == Character {
+    func printGrid() {
+        printGrid({$0})
+    }
+}
+

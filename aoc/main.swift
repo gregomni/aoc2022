@@ -58,6 +58,12 @@ case 19:
     print(aplenty(contents))
 case 20:
     print(pulsePropogation(contents))
+case 21:
+    print(stepCounter(contents))
+case 22:
+    print(sandSlabs(contents))
+case 23:
+    print(longWalk(contents))
 default:
     print("unknown problem")
     exit(2)
