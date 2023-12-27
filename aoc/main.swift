@@ -64,6 +64,10 @@ case 22:
     print(sandSlabs(contents))
 case 23:
     print(longWalk(contents))
+case 24:
+    print(neverTellMe(contents))
+case 25:
+    print(snowverload(contents))
 default:
     print("unknown problem")
     exit(2)
