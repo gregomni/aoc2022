@@ -20,6 +20,10 @@ let contents = try! String(contentsOf: URL(fileURLWithPath: args[2]), encoding: 
 switch problem {
 case 1:
     print(dayOne(contents))
+case 2:
+    print(dayTwo(contents))
+case 3:
+    print(dayThree(contents))
 default:
     print("unknown problem")
     exit(2)
