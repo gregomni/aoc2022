@@ -79,7 +79,7 @@ func dayThree(_ contents: String, part2: Bool = true) -> Int {
 }
 
 func dayFour_part1(_ contents: String) -> Int {
-    let grid = Grid(contents: contents, mapping: {$0})
+    let grid = Grid(contents: contents)
     var result = 0
     for index in grid.indices {
         guard grid[index] == "X" else { continue }
@@ -92,7 +92,7 @@ func dayFour_part1(_ contents: String) -> Int {
                 for c in "MAS" {
                     ix += x
                     iy += y
-                    let i = Grid<Character>.Index(x: ix, y: iy)
+                    let i = grid.at(x: ix, y: iy)
                     guard grid.valid(index: i), grid[i] == c else {
                         match = false
                         break
@@ -106,14 +106,14 @@ func dayFour_part1(_ contents: String) -> Int {
 }
 
 func dayFour(_ contents: String) -> Int {
-    let grid = Grid(contents: contents, mapping: {$0})
+    let grid = Grid(contents: contents)
     var result = 0
     for index in grid.indices {
         guard grid[index] == "A" else { continue }
-        let i = Grid<Character>.Index(x: index.x + 1, y: index.y + 1)
-        let j = Grid<Character>.Index(x: index.x - 1, y: index.y - 1)
-        let k = Grid<Character>.Index(x: index.x + 1, y: index.y - 1)
-        let l = Grid<Character>.Index(x: index.x - 1, y: index.y + 1)
+        let i = grid.at(x: index.x + 1, y: index.y + 1)
+        let j = grid.at(x: index.x - 1, y: index.y - 1)
+        let k = grid.at(x: index.x + 1, y: index.y - 1)
+        let l = grid.at(x: index.x - 1, y: index.y + 1)
 
         guard grid.valid(index: i), grid.valid(index: j), grid.valid(index: k), grid.valid(index: l) else { continue }
 

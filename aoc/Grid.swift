@@ -282,5 +282,8 @@ extension Grid where Element == Character {
     func printGrid() {
         printGrid({$0})
     }
+    convenience init(contents: String, makeSameWidth: Bool = false) {
+        self.init(contents: contents, makeSameWidth: makeSameWidth, mapping: {$0})
+    }
 }
 
