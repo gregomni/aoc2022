@@ -79,26 +79,17 @@ func dayThree(_ contents: String, part2: Bool = true) -> Int {
 }
 
 func dayFour_part1(_ contents: String) -> Int {
+    let theRest = Array("MAS")
     let grid = Grid(contents: contents)
     var result = 0
     for index in grid.indices {
         guard grid[index] == "X" else { continue }
-        for x in -1 ... 1 {
-            for y in -1 ... 1 {
-                if x == 0, y == 0 { continue }
-                var ix = index.x
-                var iy = index.y
-                var match = true
-                for c in "MAS" {
-                    ix += x
-                    iy += y
-                    let i = grid.at(x: ix, y: iy)
-                    guard grid.valid(index: i), grid[i] == c else {
-                        match = false
-                        break
-                    }
+        for dx in -1 ... 1 {
+            for dy in -1 ... 1 {
+                if dx == 0, dy == 0 { continue }
+                if (Array(grid.walk(dx: dx, dy: dy, from: index).elements().prefix(3)) == theRest) {
+                    result += 1
                 }
-                if match { result += 1 }
             }
         }
     }
@@ -110,11 +101,10 @@ func dayFour(_ contents: String) -> Int {
     var result = 0
     for index in grid.indices {
         guard grid[index] == "A" else { continue }
-        let i = grid.at(x: index.x + 1, y: index.y + 1)
-        let j = grid.at(x: index.x - 1, y: index.y - 1)
-        let k = grid.at(x: index.x + 1, y: index.y - 1)
-        let l = grid.at(x: index.x - 1, y: index.y + 1)
-
+        let i = index.vector(dx: 1, dy: 1)
+        let j = index.vector(dx: -1, dy: -1)
+        let k = index.vector(dx: 1, dy: -1)
+        let l = index.vector(dx: -1, dy: 1)
         guard grid.valid(index: i), grid.valid(index: j), grid.valid(index: k), grid.valid(index: l) else { continue }
 
         if grid[i] == "M" && grid[j] == "S" || grid[i] == "S" && grid[j] == "M" {

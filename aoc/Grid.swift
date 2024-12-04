@@ -64,16 +64,24 @@ class Grid<Element> : Collection, Sequence {
         case up
         case down
 
-        var horizontal: Bool {
+        var dx: Int {
             switch self {
-            case .left, .right: return true
-            default: return false
+            case .left: -1
+            case .right: 1
+            default: 0
             }
         }
 
-        var vertical: Bool {
-            return !horizontal
+        var dy: Int {
+            switch self {
+            case .up: -1
+            case .down: 1
+            default: 0
+            }
         }
+
+        var horizontal: Bool { dx != 0 }
+        var vertical: Bool { dy != 0 }
 
         func turnClockwise() -> Direction {
             switch self {
@@ -144,14 +152,9 @@ class Grid<Element> : Collection, Sequence {
             return lhs.x < rhs.x
         }
 
-        func direction(_ d: Direction) -> Index {
-            switch d {
-            case .left: return Index(x: x-1, y: y)
-            case .right: return Index(x: x+1, y: y)
-            case .up: return Index(x: x, y: y-1)
-            case .down: return Index(x: x, y: y+1)
-            }
-        }
+        func direction(_ d: Direction) -> Index { Index(x: x+d.dx, y: y+d.dy) }
+
+        func vector(dx: Int, dy: Int) -> Index { Index(x: x+dx, y: y+dy) }
 
         func direction(to: Self) -> Direction {
             if x > to.x { return .left }
@@ -198,24 +201,33 @@ class Grid<Element> : Collection, Sequence {
         var current: Index
         let move: (Index) -> Index
 
-        // Sequence protocol
-        func makeIterator() -> Self { return self }
-        var underestimatedCount: Int { return 0 }
-        func withContiguousStorageIfAvailable<R>(_ body: (_ buffer: UnsafeBufferPointer<Self.Element>) throws -> R) rethrows -> R? {
-            return nil
-        }
-
-        // Iterator protocol
         mutating func next() -> Index? {
             guard grid.valid(index: current) else { return nil }
             let result = current
             current = move(current)
             return result
         }
+
+        func elements() -> ElementSequence { ElementSequence(ps: self) }
     }
+
+    struct ElementSequence: Sequence, IteratorProtocol {
+        var ps: PositionSequence
+
+        mutating func next() -> Element? {
+            guard let i = ps.next() else { return nil }
+            return ps.grid[i]
+        }
+    }
+
 
     func walk(_ direction: Direction, from: Index) -> PositionSequence {
         let move: (Index) -> Index = { $0.direction(direction) }
+        return PositionSequence(grid: self, current: move(from), move: move)
+    }
+
+    func walk(dx: Int, dy: Int, from: Index) -> PositionSequence {
+        let move: (Index) -> Index = { $0.vector(dx: dx, dy: dy) }
         return PositionSequence(grid: self, current: move(from), move: move)
     }
 
