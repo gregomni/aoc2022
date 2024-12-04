@@ -77,3 +77,51 @@ func dayThree(_ contents: String, part2: Bool = true) -> Int {
     }
     return result
 }
+
+func dayFour_part1(_ contents: String) -> Int {
+    let grid = Grid(contents: contents, mapping: {$0})
+    var result = 0
+    for index in grid.indices {
+        guard grid[index] == "X" else { continue }
+        for x in -1 ... 1 {
+            for y in -1 ... 1 {
+                if x == 0, y == 0 { continue }
+                var ix = index.x
+                var iy = index.y
+                var match = true
+                for c in "MAS" {
+                    ix += x
+                    iy += y
+                    let i = Grid<Character>.Index(x: ix, y: iy)
+                    guard grid.valid(index: i), grid[i] == c else {
+                        match = false
+                        break
+                    }
+                }
+                if match { result += 1 }
+            }
+        }
+    }
+    return result
+}
+
+func dayFour(_ contents: String) -> Int {
+    let grid = Grid(contents: contents, mapping: {$0})
+    var result = 0
+    for index in grid.indices {
+        guard grid[index] == "A" else { continue }
+        let i = Grid<Character>.Index(x: index.x + 1, y: index.y + 1)
+        let j = Grid<Character>.Index(x: index.x - 1, y: index.y - 1)
+        let k = Grid<Character>.Index(x: index.x + 1, y: index.y - 1)
+        let l = Grid<Character>.Index(x: index.x - 1, y: index.y + 1)
+
+        guard grid.valid(index: i), grid.valid(index: j), grid.valid(index: k), grid.valid(index: l) else { continue }
+
+        if grid[i] == "M" && grid[j] == "S" || grid[i] == "S" && grid[j] == "M" {
+            if grid[k] == "M" && grid[l] == "S" || grid[k] == "S" && grid[l] == "M" {
+                result += 1
+            }
+        }
+    }
+    return result
+}
