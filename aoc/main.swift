@@ -26,6 +26,8 @@ case 3:
     print(dayThree(contents))
 case 4:
     print(dayFour(contents))
+case 5:
+    print(dayFive(contents))
 default:
     print("unknown problem")
     exit(2)

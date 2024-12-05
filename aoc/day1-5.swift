@@ -115,3 +115,70 @@ func dayFour(_ contents: String) -> Int {
     }
     return result
 }
+
+func dayFive(_ contents: String) -> Int {
+    var ordering: [Int : [Int]] = [:]
+    var readFirst = true
+    var result = 0
+
+    func orderedCorrectly(array: [Int]) -> Bool {
+        var previous: Set<Int> = []
+        let contents = Set(array)
+        for i in array {
+            for needed in ordering[i] ?? [] {
+                guard contents.contains(needed) else { continue }
+                if !previous.contains(needed) {
+                    return false
+                }
+            }
+            previous.insert(i)
+        }
+        return true
+    }
+
+    func reorder(array: [Int]) -> [Int] {
+        var old = array
+        var new: [Int] = []
+        var previous: Set<Int> = []
+        let contents = Set(array)
+
+        func allowed(_ x: Int) -> Bool {
+            for needed in ordering[x] ?? [] {
+                guard contents.contains(needed) else { continue }
+                if !previous.contains(needed) {
+                    return false
+                }
+            }
+            return true
+        }
+
+        while !old.isEmpty {
+            for i in old.indices {
+                let x = old[i]
+                if allowed(x) {
+                    new.append(x)
+                    old.remove(at: i)
+                    previous.insert(x)
+                    break
+                }
+            }
+        }
+        return new
+    }
+
+    contents.enumerateLines { line, _ in
+        if readFirst {
+            guard !line.isEmpty else { readFirst = false; return }
+            let array = line.components(separatedBy: "|").map({ Int($0)! })
+            ordering[array[1], default:[]].append(array[0])
+        } else {
+            let array = line.components(separatedBy: ",").map({ Int($0)! })
+            if !orderedCorrectly(array: array) {
+                let new = reorder(array: array)
+                result += new[new.count/2]
+            }
+        }
+    }
+    return result
+}
+
