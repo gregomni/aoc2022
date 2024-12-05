@@ -118,63 +118,47 @@ func dayFour(_ contents: String) -> Int {
 
 func dayFive(_ contents: String) -> Int {
     var ordering: [Int : [Int]] = [:]
-    var readFirst = true
-    var result = 0
 
-    func orderedCorrectly(array: [Int]) -> Bool {
+    func orderedCorrectly(_ array: [Int]) -> Bool {
         var previous: Set<Int> = []
         let contents = Set(array)
         for i in array {
-            for needed in ordering[i] ?? [] {
-                guard contents.contains(needed) else { continue }
-                if !previous.contains(needed) {
-                    return false
-                }
-            }
+            let needed = contents.intersection(ordering[i, default:[]])
+            guard previous.isSuperset(of: needed) else { return false }
             previous.insert(i)
         }
         return true
     }
 
-    func reorder(array: [Int]) -> [Int] {
-        var old = array
+    func reorder(_  array: [Int]) -> [Int] {
         var new: [Int] = []
         var previous: Set<Int> = []
         let contents = Set(array)
 
-        func allowed(_ x: Int) -> Bool {
-            for needed in ordering[x] ?? [] {
-                guard contents.contains(needed) else { continue }
-                if !previous.contains(needed) {
-                    return false
-                }
-            }
-            return true
-        }
-
-        while !old.isEmpty {
-            for i in old.indices {
-                let x = old[i]
-                if allowed(x) {
+        while new.count < array.count {
+            for x in array where !new.contains(x) {
+                let needed = contents.intersection(ordering[x, default:[]])
+                if previous.isSuperset(of: needed) {
                     new.append(x)
-                    old.remove(at: i)
                     previous.insert(x)
-                    break
                 }
             }
         }
         return new
     }
 
+    var readOrderings = true
+    var result = 0
+
     contents.enumerateLines { line, _ in
-        if readFirst {
-            guard !line.isEmpty else { readFirst = false; return }
+        if readOrderings {
+            guard !line.isEmpty else { readOrderings = false; return }
             let array = line.components(separatedBy: "|").map({ Int($0)! })
             ordering[array[1], default:[]].append(array[0])
         } else {
             let array = line.components(separatedBy: ",").map({ Int($0)! })
-            if !orderedCorrectly(array: array) {
-                let new = reorder(array: array)
+            if !orderedCorrectly(array) {
+                let new = reorder(array)
                 result += new[new.count/2]
             }
         }
