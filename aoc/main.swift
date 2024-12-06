@@ -28,6 +28,8 @@ case 4:
     print(dayFour(contents))
 case 5:
     print(dayFive(contents))
+case 6:
+    print(daySix(contents))
 default:
     print("unknown problem")
     exit(2)
