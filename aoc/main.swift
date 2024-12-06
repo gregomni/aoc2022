@@ -14,6 +14,7 @@ if (args.count < 3) {
     exit(1)
 }
 
+let begin = Date()
 let problem = Int(args[1])!
 let contents = try! String(contentsOf: URL(fileURLWithPath: args[2]), encoding: .ascii)
 
@@ -34,5 +35,6 @@ default:
     print("unknown problem")
     exit(2)
 }
+print("time= \(Date().timeIntervalSince(begin))")
 exit(0)
 
