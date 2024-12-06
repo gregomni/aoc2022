@@ -32,10 +32,11 @@ func daySix(_ contents: String, _ part1: Bool = false) -> Int {
             }
         }
     }
-    var grid = Grid(contents: contents, mapping: { Square($0) })
+    let grid = Grid(contents: contents, mapping: { Square($0) })
+    let start = grid.indices.first(where: { grid[$0].visited })!
 
-    func walk(_ grid: inout Grid<Square>, from: Grid<Square>.Index) -> Bool {
-        var position = from
+    func walk(_ grid: inout Grid<Square>) -> Bool {
+        var position = start
         var direction = grid[position].directions.first!
 
         while true {
@@ -51,19 +52,17 @@ func daySix(_ contents: String, _ part1: Bool = false) -> Int {
         }
     }
 
-    let start = grid.indices.first(where: { grid[$0].visited })!
-    if part1 {
-        _ = walk(&grid, from: start)
-        return grid.indices.filter({ grid[$0].visited }).count
-    } else {
-        var touched = Grid(copy: grid)
-        _ = walk(&touched, from: start)
+    var touched = Grid(copy: grid)
+    _ = walk(&touched)
 
+    if part1 {
+        return touched.indices.filter({ touched[$0].visited }).count
+    } else {
         var result = 0
         for i in grid.indices where touched[i].visited && i != start {
             var copy = Grid(copy: grid)
             copy[i].barrier = true
-            if walk(&copy, from: start) {
+            if walk(&copy) {
                 result += 1
             }
         }
