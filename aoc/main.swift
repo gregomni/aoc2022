@@ -33,6 +33,8 @@ case 6:
     print(daySix(contents))
 case 7:
     print(daySeven(contents))
+case 8:
+    print(dayEight(contents))
 default:
     print("unknown problem")
     exit(2)
