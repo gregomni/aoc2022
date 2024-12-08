@@ -71,22 +71,17 @@ func dayEight(_ contents: String) -> Int {
         freqs.insert(freq)
 
         let all = grid.indices.filter { grid[$0].antenna == freq }
-        for (j, k) in all.allPairs() {
+        for (var j, var k) in all.allPairs() {
             let dx = j.x - k.x
             let dy = j.y - k.y
 
-            grid[j].antinodes += 1
-            grid[k].antinodes += 1
-
-            var l = grid.at(x: k.x - dx, y: k.y - dy)
-            while grid.valid(index: l) {
-                grid[l].antinodes += 1
-                l = grid.at(x: l.x - dx, y: l.y - dy)
+            while grid.valid(index: j) {
+                grid[j].antinodes += 1
+                j = grid.at(x: j.x - dx, y: j.y - dy)
             }
-            var m = grid.at(x: j.x + dx, y: j.y + dy)
-            while grid.valid(index: m) {
-                grid[m].antinodes += 1
-                m = grid.at(x: m.x + dx, y: m.y + dy)
+            while grid.valid(index: k) {
+                grid[k].antinodes += 1
+                k = grid.at(x: k.x + dx, y: k.y + dy)
             }
         }
     }
