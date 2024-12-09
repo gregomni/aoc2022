@@ -11,7 +11,7 @@ func dayNine(_ contents: String, part1: Bool = false) -> Int {
     struct File {
         var id: Int
         var length: Int
-        var free: Bool { id == -1 }
+        var free: Bool { get { id == -1 } set { id = -1 } }
         func checksum(startingAt block: Int) -> Int {
             if free { return 0 }
             return (block ..< block + length).reduce(0, { $0 + $1 * id })
@@ -34,18 +34,18 @@ func dayNine(_ contents: String, part1: Bool = false) -> Int {
             let f = files[src]
 
             if dst > src {
-                fileID -= 1
+                break
             } else if files[dst].length < f.length {
                 files[src].length -= files[dst].length
                 files[dst].id = fileID
-            } else if files[dst].length == f.length {
-                files[src].id = -1
-                files[dst].id = fileID
-                fileID -= 1
             } else {
-                files[src].id = -1
-                files[dst].length -= f.length
-                files.insert(f, at: dst)
+                files[src].free = true
+                if files[dst].length == f.length {
+                    files[dst].id = fileID
+                } else {
+                    files[dst].length -= f.length
+                    files.insert(f, at: dst)
+                }
                 fileID -= 1
             }
         }
@@ -56,7 +56,7 @@ func dayNine(_ contents: String, part1: Bool = false) -> Int {
             let f = files[index]
             for i in 0 ..< index {
                 guard files[i].free, files[i].length >= f.length else { continue }
-                files[index].id = -1
+                files[index].free = true
 
                 if files[i].length == f.length {
                     files[i].id = f.id
