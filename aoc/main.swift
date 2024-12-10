@@ -37,6 +37,8 @@ case 8:
     print(dayEight(contents))
 case 9:
     print(dayNine(contents))
+case 10:
+    print(dayTen(contents))
 default:
     print("unknown problem")
     exit(2)
