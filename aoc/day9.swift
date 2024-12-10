@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Collections
 
 func dayNine(_ contents: String, part1: Bool = false) -> Int {
     struct File {
@@ -75,6 +76,55 @@ func dayNine(_ contents: String, part1: Bool = false) -> Int {
     for f in files {
         result += f.checksum(startingAt: block)
         block += f.length
+    }
+    return result
+}
+
+// HEAPS!
+func dayNine_h(_ contents: String) -> Int {
+    struct File {
+        var id: Int
+        var length: Int
+        var block: Int
+        var free: Bool { get { id == -1 } set { id = -1 } }
+        func checksum() -> Int {
+            if free { return 0 }
+            return (block ..< block + length).reduce(0, { $0 + $1 * id })
+        }
+    }
+
+    var files: [File] = []
+    var freeHeaps = Array(repeating: Heap<Int>(), count: 10)
+    let charArray = Array(contents)
+    var block = 0
+    for i in charArray.indices {
+        guard let length = charArray[i].wholeNumberValue else { continue }
+        if (i % 2 == 1) {
+            freeHeaps[length].insert(block)
+        } else {
+            files.append(File(id: i / 2, length: length, block: block))
+        }
+        block += length
+    }
+
+    var result = 0
+    for var f in files.reversed() {
+        var i = f.block
+        var heap: Int? = nil
+        for n in f.length ... 9 {
+            if let m = freeHeaps[n].min, m < i {
+                i = m
+                heap = n
+            }
+        }
+        if let heap {
+            let i = freeHeaps[heap].popMin()!
+            f.block = i
+            if heap > f.length {
+                freeHeaps[heap - f.length].insert(i + f.length)
+            }
+        }
+        result += f.checksum()
     }
     return result
 }

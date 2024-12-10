@@ -11,6 +11,8 @@
 		6C72FF5D2940FAEF002E0D6C /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C72FF5C2940FAEF002E0D6C /* main.swift */; };
 		6CA665632D02B8A60012B0E5 /* day6.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CA665622D02B8A60012B0E5 /* day6.swift */; };
 		6CA665652D0405CD0012B0E5 /* day7-8.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CA665642D0405CD0012B0E5 /* day7-8.swift */; };
+		6CADB3612D089F7C007ADF14 /* HeapModule in Frameworks */ = {isa = PBXBuildFile; productRef = 6CADB3602D089F7C007ADF14 /* HeapModule */; };
+		6CADB3632D08A019007ADF14 /* Collections in Frameworks */ = {isa = PBXBuildFile; productRef = 6CADB3622D08A019007ADF14 /* Collections */; };
 		6CB741A3294CE6C4003EFE8E /* Graph.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CB741A2294CE6C4003EFE8E /* Graph.swift */; };
 		6CD202622D06A1E300D353E9 /* day9.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CD202612D06A1E300D353E9 /* day9.swift */; };
 		6CD202642D08105E00D353E9 /* day10.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CD202632D08105E00D353E9 /* day10.swift */; };
@@ -68,6 +70,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6CADB3632D08A019007ADF14 /* Collections in Frameworks */,
+				6CADB3612D089F7C007ADF14 /* HeapModule in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -176,6 +180,9 @@
 				Base,
 			);
 			mainGroup = 6C72FF502940FAEF002E0D6C;
+			packageReferences = (
+				6CADB35F2D089F7C007ADF14 /* XCRemoteSwiftPackageReference "swift-collections" */,
+			);
 			productRefGroup = 6C72FF5A2940FAEF002E0D6C /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -363,6 +370,30 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		6CADB35F2D089F7C007ADF14 /* XCRemoteSwiftPackageReference "swift-collections" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-collections.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.1.4;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		6CADB3602D089F7C007ADF14 /* HeapModule */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6CADB35F2D089F7C007ADF14 /* XCRemoteSwiftPackageReference "swift-collections" */;
+			productName = HeapModule;
+		};
+		6CADB3622D08A019007ADF14 /* Collections */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6CADB35F2D089F7C007ADF14 /* XCRemoteSwiftPackageReference "swift-collections" */;
+			productName = Collections;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 6C72FF512940FAEF002E0D6C /* Project object */;
 }
