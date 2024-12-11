@@ -9,42 +9,57 @@ import Foundation
 import RegexBuilder
 
 let args = CommandLine.arguments
-if (args.count < 3) {
+if (args.count < 2) {
     print("not enough arguments")
     exit(1)
 }
-
-let begin = Date()
-let problem = Int(args[1])!
-let contents = try! String(contentsOf: URL(fileURLWithPath: args[2]), encoding: .ascii)
-
-switch problem {
-case 1:
-    print(dayOne(contents))
-case 2:
-    print(dayTwo(contents))
-case 3:
-    print(dayThree(contents))
-case 4:
-    print(dayFour(contents))
-case 5:
-    print(dayFive(contents))
-case 6:
-    print(daySix(contents))
-case 7:
-    print(daySeven(contents))
-case 8:
-    print(dayEight(contents))
-case 9:
-    print(dayNine(contents))
-case 10:
-    print(dayTen(contents))
-case 11:
-    print(dayEleven(contents))
-default:
-    print("unknown problem")
-    exit(2)
+if args[1] == "all" {
+    for problem in 1 ... 11 {
+        run(problem: problem)
+    }
+} else {
+    run(problem: Int(args[1])!)
 }
-print("time= \(Date().timeIntervalSince(begin))")
-exit(0)
+
+
+func run(problem: Int) -> Void {
+    let path: String
+    if (args.count == 3) {
+        path = args[2]
+    } else {
+        path = "/Users/toon/AdventOfCode/input\(problem).txt"
+    }
+
+    let begin = Date()
+    let contents = try! String(contentsOf: URL(fileURLWithPath: path), encoding: .ascii)
+
+    switch problem {
+    case 1:
+        print(dayOne(contents))
+    case 2:
+        print(dayTwo(contents))
+    case 3:
+        print(dayThree(contents))
+    case 4:
+        print(dayFour(contents))
+    case 5:
+        print(dayFive(contents))
+    case 6:
+        print(daySix(contents))
+    case 7:
+        print(daySeven(contents))
+    case 8:
+        print(dayEight(contents))
+    case 9:
+        print(dayNine(contents))
+    case 10:
+        print(dayTen(contents))
+    case 11:
+        print(dayEleven(contents))
+    default:
+        print("unknown problem")
+        exit(2)
+    }
+    print("time= \(Date().timeIntervalSince(begin))")
+}
 

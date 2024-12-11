@@ -35,7 +35,7 @@ func daySix(_ contents: String, _ part1: Bool = false) -> Int {
     let grid = Grid(contents: contents, mapping: { Square($0) })
     let start = grid.indices.first(where: { grid[$0].visited })!
 
-    func walk(_ grid: inout Grid<Square>) -> Bool {
+    func walk(_ grid: inout Grid<Square>, start: Grid<Square>.Index = start) -> Bool {
         var position = start
         var direction = grid[position].directions.first!
 
@@ -52,6 +52,23 @@ func daySix(_ contents: String, _ part1: Bool = false) -> Int {
         }
     }
 
+/*
+    var loops = 0
+    var blank = Grid(copy: grid)
+    blank[start].directions = []
+    for i in grid.indices where !grid[i].barrier {
+        for d in Dir.allCases {
+            var copy = Grid(copy: grid)
+            copy[i].directions = [d]
+            if walk(&copy, start: i) {
+                loops += 1
+                break
+            }
+        }
+    }
+    print("loops= \(loops)")
+    return 0
+*/
     var touched = Grid(copy: grid)
     _ = walk(&touched)
 
