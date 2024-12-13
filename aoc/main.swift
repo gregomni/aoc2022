@@ -58,7 +58,9 @@ func run(problem: Int) -> Void {
         print(dayEleven(contents))
     case 12:
         print(dayTwelve(contents))
-    default:
+    case 13:
+        print(dayThirteen(contents))
+   default:
         print("unknown problem")
         exit(2)
     }
