@@ -29,22 +29,14 @@ func dayTwelve(_ contents: String) -> Int {
         func sides(in grid: Grid<Character>) -> Int {
             var result = 0
             for i in squares {
-                for d in Dir.allCases {
-                    if !squares.contains(i.direction(d)) {
-                        let j = i.direction(d.turnCCW())
-                        if grid.valid(index: j), squares.contains(j) {
-                            if !squares.contains(j.direction(d)), j < i {
-                                continue
-                            }
-                        }
-                        let k = i.direction(d.turnClockwise())
-                        if grid.valid(index: k), squares.contains(k) {
-                            if !squares.contains(k.direction(d)), k < i {
-                                continue
-                            }
-                        }
-                        result += 1
+                for d in Dir.allCases where !squares.contains(i.direction(d)) {
+                    func lowerEdgeExtends(in dir: Dir) -> Bool {
+                        let j = i.direction(dir)
+                        return j < i && squares.contains(j) && !squares.contains(j.direction(d))
                     }
+                    guard !lowerEdgeExtends(in: d.turnCCW()) else { continue }
+                    guard !lowerEdgeExtends(in: d.turnClockwise()) else { continue }
+                    result += 1
                 }
             }
             return result
