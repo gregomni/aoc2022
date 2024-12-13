@@ -17,11 +17,7 @@ func dayTwelve(_ contents: String) -> Int {
         var perimeter: Int {
             var result = 0
             for i in squares {
-                for d in Dir.allCases {
-                    if !squares.contains(i.direction(d)) {
-                        result += 1
-                    }
-                }
+                result += Dir.allCases.count(where: { !squares.contains(i.direction($0)) })
             }
             return result
         }
