@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Collections
 
 func daySixteen(_ contents: String) -> Int {
     typealias Pos = Grid<Character>.Index
@@ -18,15 +19,15 @@ func daySixteen(_ contents: String) -> Int {
         func moves(in grid: Grid<Character>) -> [Here] {
             var result: [Here] = []
             let next = here.direction(facing)
-            if grid.valid(index: next), grid[next] != "#" {
+            if grid[next] != "#" {
                 result.append(Here(here: next, facing: facing))
             }
             let cw = here.direction(facing.turnClockwise())
-            if grid.valid(index: cw), grid[cw] != "#" {
+            if grid[cw] != "#" {
                 result.append(Here(here: cw, facing: facing.turnClockwise()))
             }
             let ccw = here.direction(facing.turnCCW())
-            if grid.valid(index: ccw), grid[ccw] != "#" {
+            if grid[ccw] != "#" {
                 result.append(Here(here: ccw, facing: facing.turnCCW()))
             }
             return result
@@ -44,47 +45,52 @@ func daySixteen(_ contents: String) -> Int {
         static var max = Score(s: .max, path: [])
     }
 
+    struct Possibility: Comparable {
+        let here: Here
+        let score: Score
+
+        static func < (lhs: Possibility, rhs: Possibility) -> Bool {
+            lhs.score < rhs.score
+        }
+    }
+
     let grid = Grid(contents: contents)
-    var moves = Set<Here>()
-    var been: [Here : Score] = [:]
+    var moves = Heap<Possibility>()
+    var best: [Here : Score] = [:]
 
     let start = grid.indices.first(where: { grid[$0] == "S" })!
     let end = grid.indices.first(where: { grid[$0] == "E" })!
     let begin = Here(here: start, facing: .right)
-    moves.insert(begin)
-    been[begin] = Score(s: 0, path: [start])
+    moves.insert(Possibility(here: begin, score: Score(s: 0, path: [start])))
 
-    while !moves.isEmpty {
-        let h = moves.removeFirst()
-        let s = been[h, default: .max]
+    var bestRouteSoFar = Int.max
+    while let move = moves.popMin() {
+        let h = move.here
+        if move.score > best[h, default: .max] { continue }
         for m in h.moves(in: grid) {
-            var newS: Score
-            var newP = s.path
-            newP.insert(m.here)
-            if m.facing == h.facing {
-                newS = Score(s: s.s+1, path: newP)
-            } else {
-                newS = Score(s: s.s+1001, path: newP)
-            }
-            if newS <= been[m, default: .max] {
-                if let oldS = been[m], oldS.s == newS.s {
-                    var newP = oldS.path
-                    newP.formUnion(newS.path)
-                    if newP.count == oldS.path.count {
-                        continue
-                    }
-                    newS = Score(s: newS.s, path: newP)
+            let score = move.score.s + (m.facing == h.facing ? 1 : 1000)
+            if bestRouteSoFar < score { continue }
+            var newPath = move.score.path
+            if let existingBest = best[m] {
+                if existingBest.s < score { continue }
+                if existingBest.s == score {
+                    newPath.formUnion(existingBest.path)
                 }
-                moves.insert(m)
-                been[m] = newS
+            }
+            newPath.insert(m.here)
+            let newScore = Score(s: score, path: newPath)
+            best[m] = newScore
+            if m.here == end {
+                bestRouteSoFar = min(bestRouteSoFar, score)
+            } else {
+                moves.insert(Possibility(here: m, score: newScore))
             }
         }
     }
     
     var minScore = Score.max
     for d in Dir.allCases {
-        let s = been[Here(here: end, facing: d), default: .max]
-        if s < minScore {
+        if let s = best[Here(here: end, facing: d)], s < minScore {
             minScore = s
         }
     }
