@@ -33,10 +33,10 @@ func dayFourteen(_ contents: String, part1: Bool = false) -> Int {
         robots.append(Robot(rx: Int(match.1)!, ry: Int(match.2)!, dx: Int(match.3)!, dy: Int(match.4)!))
     }
 
-    if part1 {
-        let totalWidth = 101
-        let totalHeight = 103
+    let totalWidth = 101
+    let totalHeight = 103
 
+    if part1 {
         var q = Array(repeating: 0, count: 4)
         for r in robots {
             let (x,y) = r.time(100)
@@ -61,7 +61,7 @@ func dayFourteen(_ contents: String, part1: Bool = false) -> Int {
         let grid = Grid(contents: all)
 
         var best = 0
-        for t in 1 ..< 10000 {
+        for t in 1 ..< (totalWidth*totalHeight) {
             let g = Grid(copy: grid)
             for r in robots {
                 let (x,y) = r.time(t)
@@ -70,9 +70,7 @@ func dayFourteen(_ contents: String, part1: Bool = false) -> Int {
             var near = 0
             for i in g.indices where g[i] == "#" {
                 let l = i.direction(.left)
-                let r = i.direction(.right)
                 if g.valid(index: l), g[l] == "#" { near += 1 }
-                if g.valid(index: r), g[r] == "#" { near += 1 }
             }
             if near > best {
                 print("\(t)")
