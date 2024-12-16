@@ -36,7 +36,7 @@ func daySixteen(_ contents: String) -> Int {
 
     struct Score: Comparable {
         let s: Int
-        var path: Set<Pos>
+        var path: [Here]
 
         static func < (lhs: Score, rhs: Score) -> Bool {
             lhs.s < rhs.s
@@ -61,8 +61,9 @@ func daySixteen(_ contents: String) -> Int {
     let start = grid.indices.first(where: { grid[$0] == "S" })!
     let end = grid.indices.first(where: { grid[$0] == "E" })!
     let begin = Here(here: start, facing: .right)
-    moves.insert(Possibility(here: begin, score: Score(s: 0, path: [start])))
+    moves.insert(Possibility(here: begin, score: Score(s: 0, path: [])))
 
+    // Walk forward all the possibilities
     var bestRouteSoFar = Int.max
     while let move = moves.popMin() {
         let h = move.here
@@ -70,14 +71,13 @@ func daySixteen(_ contents: String) -> Int {
         for m in h.moves(in: grid) {
             let score = move.score.s + (m.facing == h.facing ? 1 : 1000)
             if bestRouteSoFar < score { continue }
-            var newPath = move.score.path
+            var newPath = [h]
             if let existingBest = best[m] {
                 if existingBest.s < score { continue }
                 if existingBest.s == score {
-                    newPath.formUnion(existingBest.path)
+                    newPath.append(contentsOf: existingBest.path)
                 }
             }
-            newPath.insert(m.here)
             let newScore = Score(s: score, path: newPath)
             best[m] = newScore
             if m.here == end {
@@ -87,18 +87,30 @@ func daySixteen(_ contents: String) -> Int {
             }
         }
     }
-    
+
+    // Find the best path to the end regardless of what facing you end up with
     var minScore = Score.max
     for d in Dir.allCases {
         if let s = best[Here(here: end, facing: d)], s < minScore {
             minScore = s
         }
     }
-    /*
-    for p in paths {
+
+    // Trace the score path breadcrumbs back to count every place touched
+    var fullPath: Set<Pos> = []
+    var backtrack = Set(minScore.path)
+    while !backtrack.isEmpty {
+        let track = backtrack.removeFirst()
+        fullPath.insert(track.here)
+        for back in best[track]?.path ?? [] {
+            backtrack.insert(back)
+        }
+    }
+/*
+    for p in fullPath {
         grid[p] = "O"
     }
     grid.printGrid()
-     */
-    return minScore.path.count
+ */
+    return fullPath.count
 }
