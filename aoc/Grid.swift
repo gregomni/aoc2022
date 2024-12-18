@@ -35,6 +35,13 @@ class Grid<Element> : Collection, Sequence {
         elements = map
     }
 
+    convenience init(width: Int, height: Int, element: Element) {
+        self.init()
+        for _ in 0 ..< height {
+            elements.append(Array(repeating: element, count: width))
+        }
+    }
+
     var xSize: Int { elements.first?.count ?? 0 }
     var ySize: Int { elements.count }
 
