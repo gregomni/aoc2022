@@ -14,7 +14,7 @@ if (args.count < 2) {
     exit(1)
 }
 if args[1] == "all" {
-    for problem in 1 ... 18 {
+    for problem in 1 ... 19 {
         run(problem: problem)
     }
 } else {
@@ -70,6 +70,8 @@ func run(problem: Int) -> Void {
         print(daySeventeen(contents))
     case 18:
         print(dayEighteen(contents))
+    case 19:
+        print(dayNineteen(contents))
     default:
         print("unknown problem")
         exit(2)
