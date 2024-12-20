@@ -8,7 +8,7 @@
 import Foundation
 import Collections
 
-func dayTwenty(_ contents: String, part1: Bool = true) -> Int {
+func dayTwenty(_ contents: String, part1: Bool = false) -> Int {
     typealias Pos = Grid<Character>.Index
     typealias Dir = Grid<Character>.Direction
 
@@ -59,12 +59,16 @@ func dayTwenty(_ contents: String, part1: Bool = true) -> Int {
     var result = 0
     for i in grid.indices {
         guard let startMoves = startToEnd[i] else { continue }
-        for j in grid.indices {
-            guard let endMoves = endToStart[j] else { continue }
-            let distance = abs(i.x - j.x) + abs(i.y - j.y)
-            guard distance <= cheatDistance else { continue }
-            if startMoves + endMoves + distance <= limit {
-                result += 1
+        for x in i.x - cheatDistance ... i.x + cheatDistance {
+            for y in i.y - cheatDistance ... i.y + cheatDistance {
+                let distance = abs(i.x - x) + abs(i.y - y)
+                guard distance <= cheatDistance else { continue }
+                let j = Pos(x: x, y: y)
+                guard grid.valid(index: j) else { continue }
+                guard let endMoves = endToStart[j] else { continue }
+                if startMoves + endMoves + distance <= limit {
+                    result += 1
+                }
             }
         }
     }
