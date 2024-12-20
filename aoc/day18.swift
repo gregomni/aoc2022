@@ -18,7 +18,6 @@ func dayEighteen(_ contents: String, part1: Bool = false) -> Int {
     struct Score: ScoreType {
         var best = 0
         var from: Pos? = nil
-        func combineEqualPaths(lhs: Score, rhs: Score) -> Score { return lhs }
         static func < (lhs: Score, rhs: Score) -> Bool { lhs.best < rhs.best }
     }
 

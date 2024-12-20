@@ -13,16 +13,24 @@ if (args.count < 2) {
     print("not enough arguments")
     exit(1)
 }
+let format = FloatingPointFormatStyle<Double>.number.rounded(increment: 0.001).precision(.fractionLength(3))
 if args[1] == "all" {
-    for problem in 1 ... 19 {
-        run(problem: problem)
+    var times: [Double] = []
+    for problem in 1 ... 20 {
+        times.append(run(problem: problem))
     }
+    for (i,t) in zip(times.indices, times) {
+        print("#\(i+1)\t\(t.formatted(format))s")
+    }
+    let sum = times.reduce(0,+)
+    print("total\t\(sum.formatted(format))s")
 } else {
-    run(problem: Int(args[1])!)
+    let time = run(problem: Int(args[1])!)
+    print("time= \(time)")
 }
 
 
-func run(problem: Int) -> Void {
+func run(problem: Int) -> Double {
     let path: String
     if (args.count == 3) {
         path = args[2]
@@ -78,6 +86,6 @@ func run(problem: Int) -> Void {
         print("unknown problem")
         exit(2)
     }
-    print("time= \(Date().timeIntervalSince(begin))")
+    return Date().timeIntervalSince(begin)
 }
 

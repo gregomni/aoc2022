@@ -61,6 +61,7 @@ func dayFourteen(_ contents: String, part1: Bool = false) -> Int {
         let grid = Grid(contents: all)
 
         var best = 0
+        var bestTime = 0
         for t in 1 ..< (totalWidth*totalHeight) {
             let g = Grid(copy: grid)
             for r in robots {
@@ -73,12 +74,15 @@ func dayFourteen(_ contents: String, part1: Bool = false) -> Int {
                 if g.valid(index: l), g[l] == "#" { near += 1 }
             }
             if near > best {
+                /*
                 print("\(t)")
                 g.printGrid()
                 print("\n\n\n")
+                 */
                 best = near
+                bestTime = t
             }
         }
-        return -1
+        return bestTime
     }
 }
