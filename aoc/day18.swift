@@ -14,8 +14,12 @@ func dayEighteen(_ contents: String, part1: Bool = false) -> Int {
     typealias Pos = Grid<Square>.Index
     struct Square {
         var corrupt = false
-        var best = Int.max
+    }
+    struct Score: ScoreType {
+        var best = 0
         var from: Pos? = nil
+        func combineEqualPaths(lhs: Score, rhs: Score) -> Score { return lhs }
+        static func < (lhs: Score, rhs: Score) -> Bool { lhs.best < rhs.best }
     }
 
     let grid = Grid(width: size, height: size, element: Square())
@@ -23,37 +27,18 @@ func dayEighteen(_ contents: String, part1: Bool = false) -> Int {
     let start = Pos(x: 0, y: 0)
     let end = Pos(x: size-1, y: size-1)
 
-    struct Move : Comparable {
-        let position: Pos
-        let steps: Int
-
-        static func < (lhs: Move, rhs: Move) -> Bool { lhs.steps < rhs.steps }
-    }
-
-    func solve(_ grid: Grid<Square>) -> Int? {
-        var spots = Heap([Move(position: start, steps: 0)])
-        while let m = spots.popMin() {
-            let newSteps = m.steps+1
-            for i in grid.cardinalDirections(from: m.position) {
-                if !grid[i].corrupt, grid[i].best > newSteps {
-                    grid[i].best = newSteps
-                    grid[i].from = m.position
-                    spots.insert(Move(position: i, steps: newSteps))
-                }
-                guard i != end else { return newSteps }
-            }
-        }
-        return nil
-    }
-
     func solveAndGetPath() -> Set<Pos>? {
-        let copy = Grid(copy: grid)
-        guard solve(copy) != nil else { return nil }
+        let best = grid.bestMoves(from: PossibleMove(move: start, score: Score()), to: { $0 == end }) { grid, possible in
+            grid.cardinalDirections(from: possible.move)
+                .filter({ !grid[$0].corrupt })
+                .map({ PossibleMove(move: $0, score: Score(best: possible.score.best+1, from: possible.move)) })
+        }
+        guard best[end] != nil else { return nil }
         var result: Set<Pos> = []
         var i = end
         while i != start {
             result.insert(i)
-            i = copy[i].from!
+            i = best[i]!.from!
         }
         return result
     }
@@ -61,7 +46,7 @@ func dayEighteen(_ contents: String, part1: Bool = false) -> Int {
     for i in corruptions[..<1024] {
         grid[i].corrupt = true
     }
-    if part1 { return solve(grid)! }
+    if part1 { return grid.manhattanMoveDistance(from: start, to: end, allowed: { !$0.corrupt })! }
 
     var path = solveAndGetPath()!
     for i in corruptions[1024...] {
