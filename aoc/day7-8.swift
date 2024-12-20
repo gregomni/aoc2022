@@ -23,7 +23,7 @@ func daySeven(_ contents: String) -> Int {
                 if operands.count == 2 {
                     if v == testValue { return true }
                 } else {
-                    if evaluate(testValue, operands: [v] + operands.dropFirst(2)) {
+                    if v <= testValue, evaluate(testValue, operands: [v] + operands.dropFirst(2)) {
                         return true
                     }
                 }
