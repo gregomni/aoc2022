@@ -56,9 +56,7 @@ func dayFourteen(_ contents: String, part1: Bool = false) -> Int {
         }
         return q.reduce(1,*)
     } else {
-        let line = String(Array(repeating: ".", count: 101) + ["\n"])
-        let all = Array(repeating: line, count: 103).joined()
-        let grid = Grid(contents: all)
+        let grid = Grid(width: totalWidth, height: totalHeight, element: ".")
 
         var best = 0
         var bestTime = 0

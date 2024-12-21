@@ -16,7 +16,7 @@ if (args.count < 2) {
 let format = FloatingPointFormatStyle<Double>.number.rounded(increment: 0.001).precision(.fractionLength(3))
 if args[1] == "all" {
     var times: [Double] = []
-    for problem in 1 ... 20 {
+    for problem in 1 ... 21 {
         times.append(run(problem: problem))
     }
     for (i,t) in zip(times.indices, times) {
@@ -41,6 +41,7 @@ func run(problem: Int) -> Double {
     let begin = Date()
     let contents = try! String(contentsOf: URL(fileURLWithPath: path), encoding: .ascii)
 
+    print("#\(problem):")
     switch problem {
     case 1:
         print(dayOne(contents))
@@ -82,6 +83,8 @@ func run(problem: Int) -> Double {
         print(dayNineteen(contents))
     case 20:
         print(dayTwenty(contents))
+    case 21:
+        print(dayTwentyOne(contents))
     default:
         print("unknown problem")
         exit(2)
