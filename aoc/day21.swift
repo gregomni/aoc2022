@@ -25,14 +25,6 @@ func dayTwentyOne(_ contents: String, part1: Bool = true) -> Int {
             allMoves[Move(from: e, to: e)] = ["A"]
         }
 
-        func prepend(_ c: Character, to: Set<String>) -> Set<String> {
-            var result = Set<String>()
-            for m in to {
-                result.insert([c] + m)
-            }
-            return result
-        }
-
         func moves(from: Pos, to: Pos) -> Set<String> {
             guard grid[from] != " " else { return [] }
             if let moves = allMoves[Move(from: grid[from], to: grid[to])] {
@@ -40,14 +32,14 @@ func dayTwentyOne(_ contents: String, part1: Bool = true) -> Int {
             }
             var result: Set<String> = []
             if from.y > to.y {
-                result.formUnion(prepend("^", to: moves(from: from.direction(.up), to: to)))
+                result.formUnion(moves(from: from.direction(.up), to: to).map({ ["^"] + $0 }))
             } else if from.y < to.y {
-                result.formUnion(prepend("v", to: moves(from: from.direction(.down), to: to)))
+                result.formUnion(moves(from: from.direction(.down), to: to).map({ ["v"] + $0 }))
             }
             if from.x > to.x {
-                result.formUnion(prepend("<", to: moves(from: from.direction(.left), to: to)))
+                result.formUnion(moves(from: from.direction(.left), to: to).map({ ["<"] + $0 }))
             } else if from.x < to.x {
-                result.formUnion(prepend(">", to: moves(from: from.direction(.right), to: to)))
+                result.formUnion(moves(from: from.direction(.right), to: to).map({ [">"] + $0 }))
             }
             allMoves[Move(from: grid[from], to: grid[to])] = result
             return result
@@ -65,12 +57,11 @@ func dayTwentyOne(_ contents: String, part1: Bool = true) -> Int {
 
     func waysToPress(_ string: Substring, start: Character = "A", numeric: Bool) -> Set<String> {
         guard !string.isEmpty else { return [""] }
-        let c = string.first!
-        let rest = waysToPress(string.dropFirst(), start: c, numeric: numeric)
+        let rest = waysToPress(string.dropFirst(), start: string.first!, numeric: numeric)
 
         var result = Set<String>()
         let ways = numeric ? numericWays : directionalWays
-        for w in ways[Move(from: start, to: c)]! {
+        for w in ways[Move(from: start, to: string.first!)]! {
             for r in rest {
                 result.insert(w.appending(r))
             }
@@ -85,9 +76,8 @@ func dayTwentyOne(_ contents: String, part1: Bool = true) -> Int {
 
     func bestWayToPressDirectional(_ string: Substring, start: Character) -> Int {
         guard !string.isEmpty else { return 0 }
-        let c = string.first!
-        let rest = bestWayToPressDirectional(string.dropFirst(), start: c)
-        return directionalMinimums[Move(from: start, to: c)]! + rest
+        let rest = bestWayToPressDirectional(string.dropFirst(), start: string.first!)
+        return directionalMinimums[Move(from: start, to: string.first!)]! + rest
     }
 
     func directionalForNumeric(_ string: Substring) -> Set<String> {
