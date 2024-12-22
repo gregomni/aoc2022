@@ -19,6 +19,7 @@ func dayNine(_ contents: String) -> Int {
     }
 
     var files: [File] = []
+    // a heap sorted on earliest-on-disk for each possible free size (0 is here but unused)
     var freeHeaps = Array(repeating: Heap<Int>(), count: 10)
     let charArray = Array(contents)
     var block = 0
@@ -36,6 +37,7 @@ func dayNine(_ contents: String) -> Int {
     for var file in files.reversed() {
         var moveTo = file.block
         var heap: Int? = nil
+        // find the earliest free block big enough to fit this file
         for possibleHeap in file.length ... 9 {
             if let freeBlock = freeHeaps[possibleHeap].min, freeBlock < moveTo {
                 moveTo = freeBlock

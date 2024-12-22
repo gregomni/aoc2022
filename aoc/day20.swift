@@ -14,12 +14,13 @@ func dayTwenty(_ contents: String, part1: Bool = false) -> Int {
     let start = grid.indices.first(where: { grid[$0] == "S" })!
     let end = grid.indices.first(where: { grid[$0] == "E" })!
 
+    // compute steps from start to end
     let startToEnd = grid.bestManhattanMoves(from: start, to: end)
     let bestWithNoCheats = startToEnd[end]!
-    let endToStart = grid.bestManhattanMoves(from: end, to: start)
+    // fill a grid with steps from end to start
     let etsGrid = Grid<Int?>(width: grid.xSize, height: grid.ySize, element: nil)
-    for (i, score) in endToStart {
-        etsGrid[i.x,i.y] = score
+    for (i, score) in startToEnd {
+        etsGrid[i.x,i.y] = bestWithNoCheats - score
     }
 
     let limit = bestWithNoCheats - 100

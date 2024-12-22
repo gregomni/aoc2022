@@ -28,6 +28,7 @@ func daySix(_ contents: String, _ part1: Bool = false) -> Int {
     let grid = Grid(contents: contents, mapping: { Square($0) })
     let start = grid.indices.first(where: { grid[$0].visited })!
 
+    // guard walks, returning false if stepping out of the grid, or true if in a loop
     func walk(_ grid: inout Grid<Square>, start: Grid<Square>.Index = start) -> Bool {
         var position = start
         var direction = Direction.up
@@ -45,12 +46,14 @@ func daySix(_ contents: String, _ part1: Bool = false) -> Int {
         }
     }
 
+    // touch all the original squares in the route
     var touched = Grid(copy: grid)
     _ = walk(&touched)
 
     if part1 {
         return touched.indices.filter({ touched[$0].visited }).count
     } else {
+        // try putting a barrier in each spot of the original route
         var result = 0
         for i in grid.indices where touched[i].visited && i != start {
             var copy = Grid(copy: grid)

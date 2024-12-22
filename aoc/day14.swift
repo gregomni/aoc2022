@@ -66,6 +66,7 @@ func dayFourteen(_ contents: String, part1: Bool = false) -> Int {
                 let (x,y) = r.time(t)
                 g[x,y] = true
             }
+            // look for horizontal alignment by maximizing having a bot on your left
             var near = 0
             for i in g.indices where g[i] {
                 let l = i.direction(.left)

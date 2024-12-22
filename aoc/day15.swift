@@ -32,6 +32,7 @@ func dayFifteen(_ contents: String, part1: Bool = false) -> Int {
     var position = grid.indices.first(where: { grid[$0] == "@" })!
     grid[position] = "."
 
+    // move is recursive and destructive, so needs a clean grid each time in case it fails
     func move(_ d: Direction, from pos: Position, on grid: Grid<Character>) -> Bool {
         let moved = pos.direction(d)
         defer { grid[moved] = grid[pos] }
@@ -67,6 +68,7 @@ func dayFifteen(_ contents: String, part1: Bool = false) -> Int {
     }
 
     for m in movements {
+        // copy the grid, try the move, keep the new grid if it works
         func tryMove(_ d: Direction) {
             let copy = Grid(copy: grid)
             if move(d, from: position, on: copy) {

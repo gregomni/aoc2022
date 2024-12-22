@@ -10,6 +10,8 @@ import Foundation
 func dayNineteen(_ contents: String, part1: Bool = false) -> Int {
     let lines = contents.components(separatedBy: "\n").dropLast()
     let patterns = lines[0].components(separatedBy: ", ")
+
+    // sort the patterns by size and put them in sets
     var patternInfo: [Set<Substring>] = []
     for pattern in patterns {
         while patternInfo.count < pattern.count {
@@ -27,6 +29,7 @@ func dayNineteen(_ contents: String, part1: Bool = false) -> Int {
 
         var result = 0
         for i in patternInfo.indices {
+            // check prefix sets by size so we don't need to compare many patterns
             if patternInfo[i].contains(design.prefix(i+1)) {
                 let leftoverStart = design.index(design.startIndex, offsetBy: i+1)
                 result += make(design: design[leftoverStart...])
