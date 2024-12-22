@@ -31,7 +31,7 @@ func dayTwentyTwo(_ contents: String, part1: Bool = false) -> Int {
     var best = 0
 
     func loadMonkey(_ secret: Int) {
-        var foundKeys = Set<Int>()
+        var foundKeys = Set<Int>(minimumCapacity: 2000)
         var n = secret
         var changes: [Int] = []
         var lastP: Int? = nil
