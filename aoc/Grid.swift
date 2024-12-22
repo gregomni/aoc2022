@@ -66,10 +66,10 @@ class Grid<Element> : Collection, Sequence {
     }
 
     enum Direction: Int, CaseIterable {
-        case left
-        case right
-        case up
-        case down
+        case left = 1
+        case right = 2
+        case up = 4
+        case down = 8
 
         var dx: Int {
             switch self {

@@ -11,20 +11,14 @@ import RegexBuilder
 func daySix(_ contents: String, _ part1: Bool = false) -> Int {
     typealias Dir = Grid<Square>.Direction
     struct Square {
-        var directions: [Dir] = []
-        var visited: Bool { !directions.isEmpty }
+        var directions = 0
+        var visited: Bool { directions != 0 }
         var barrier = false
 
         init(_ c: Character) {
             switch c {
-            case "<":
-                directions.append(Dir.left)
-            case ">":
-                directions.append(Dir.right)
             case "^":
-                directions.append(Dir.up)
-            case "v":
-                directions.append(Dir.down)
+                directions = Dir.up.rawValue
             case "#":
                 barrier = true
             default:
@@ -37,7 +31,7 @@ func daySix(_ contents: String, _ part1: Bool = false) -> Int {
 
     func walk(_ grid: inout Grid<Square>, start: Grid<Square>.Index = start) -> Bool {
         var position = start
-        var direction = grid[position].directions.first!
+        var direction = Dir.up
 
         while true {
             let next = position.direction(direction)
@@ -47,28 +41,11 @@ func daySix(_ contents: String, _ part1: Bool = false) -> Int {
             } else {
                 position = next
             }
-            if grid[position].directions.contains(direction) { return true }
-            grid[position].directions.append(direction)
+            if (grid[position].directions & direction.rawValue) != 0 { return true }
+            grid[position].directions |= direction.rawValue
         }
     }
 
-/*
-    var loops = 0
-    var blank = Grid(copy: grid)
-    blank[start].directions = []
-    for i in grid.indices where !grid[i].barrier {
-        for d in Dir.allCases {
-            var copy = Grid(copy: grid)
-            copy[i].directions = [d]
-            if walk(&copy, start: i) {
-                loops += 1
-                break
-            }
-        }
-    }
-    print("loops= \(loops)")
-    return 0
-*/
     var touched = Grid(copy: grid)
     _ = walk(&touched)
 
