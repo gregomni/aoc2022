@@ -74,7 +74,7 @@ func dayFourteen(_ contents: String, part1: Bool = false) -> Int {
             if near > best {
                 /*
                 print("\(t)")
-                g.printGrid()
+                g.printGrid({ $0 ? "#" : "." })
                 print("\n\n\n")
                  */
                 best = near
