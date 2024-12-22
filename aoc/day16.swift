@@ -9,12 +9,9 @@ import Foundation
 import Collections
 
 func daySixteen(_ contents: String) -> Int {
-    typealias Pos = Grid<Character>.Index
-    typealias Dir = Grid<Character>.Direction
-    
     struct Here: Hashable {
-        var here: Pos
-        var facing: Dir
+        var here: Position
+        var facing: Direction
 
         func moves(in grid: Grid<Character>) -> [Here] {
             var result: [Here] = []
@@ -61,14 +58,14 @@ func daySixteen(_ contents: String) -> Int {
 
     // Find the best path to the end regardless of what facing you end up with
     var minScore = Score.max
-    for d in Dir.allCases {
+    for d in Direction.allCases {
         if let s = best[Here(here: end, facing: d)], s < minScore {
             minScore = s
         }
     }
 
     // Trace the score path breadcrumbs back to count every place touched
-    var fullPath: Set<Pos> = [end]
+    var fullPath: Set<Position> = [end]
     var backtrack = Set(minScore.path)
     while !backtrack.isEmpty {
         let track = backtrack.removeFirst()

@@ -9,7 +9,6 @@ import Foundation
 import RegexBuilder
 
 func daySix(_ contents: String, _ part1: Bool = false) -> Int {
-    typealias Dir = Grid<Square>.Direction
     struct Square {
         var directions = 0
         var visited: Bool { directions != 0 }
@@ -18,7 +17,7 @@ func daySix(_ contents: String, _ part1: Bool = false) -> Int {
         init(_ c: Character) {
             switch c {
             case "^":
-                directions = Dir.up.rawValue
+                directions = Direction.up.rawValue
             case "#":
                 barrier = true
             default:
@@ -31,7 +30,7 @@ func daySix(_ contents: String, _ part1: Bool = false) -> Int {
 
     func walk(_ grid: inout Grid<Square>, start: Grid<Square>.Index = start) -> Bool {
         var position = start
-        var direction = Dir.up
+        var direction = Direction.up
 
         while true {
             let next = position.direction(direction)

@@ -7,6 +7,89 @@
 
 import Foundation
 
+enum Direction: Int, CaseIterable {
+    case left = 1
+    case right = 2
+    case up = 4
+    case down = 8
+
+    var dx: Int {
+        switch self {
+        case .left: -1
+        case .right: 1
+        default: 0
+        }
+    }
+
+    var dy: Int {
+        switch self {
+        case .up: -1
+        case .down: 1
+        default: 0
+        }
+    }
+
+    var horizontal: Bool { dx != 0 }
+    var vertical: Bool { dy != 0 }
+
+    func turnClockwise() -> Direction {
+        switch self {
+        case .left: return .up
+        case .right: return .down
+        case .up: return .right
+        case .down: return .left
+        }
+    }
+
+    func turnCCW() -> Direction {
+        switch self {
+        case .left: return .down
+        case .right: return .up
+        case .up: return .left
+        case .down: return .right
+        }
+    }
+
+    func opposite() -> Direction {
+        return self.turnClockwise().turnClockwise()
+    }
+}
+
+struct Position : Hashable, Comparable {
+    let x: Int
+    let y: Int
+
+    init(x: Int = 0, y: Int = 0) {
+        self.x = x
+        self.y = y
+    }
+
+    static func < (lhs: Self, rhs: Self) -> Bool {
+        if lhs.y < rhs.y { return true }
+        if lhs.y > rhs.y { return false }
+        return lhs.x < rhs.x
+    }
+
+    func direction(_ d: Direction) -> Self { Self(x: x+d.dx, y: y+d.dy) }
+
+    func vector(dx: Int, dy: Int) -> Self { Self(x: x+dx, y: y+dy) }
+
+    func direction(to: Self) -> Direction {
+        if x > to.x { return .left }
+        if x < to.x { return .right }
+        if y > to.y { return .up }
+        return .down
+    }
+
+    func wrap<E>(in grid: Grid<E>) -> Self {
+        var x = self.x % grid.xSize
+        var y = self.y % grid.ySize
+        if x < 0 { x += grid.xSize }
+        if y < 0 { y += grid.ySize }
+        return grid.at(x: x, y: y)
+    }
+}
+
 class Grid<Element> : Collection, Sequence {
     var elements: [[Element]] = []
 
@@ -45,6 +128,7 @@ class Grid<Element> : Collection, Sequence {
     var xSize: Int { elements.first?.count ?? 0 }
     var ySize: Int { elements.count }
 
+    typealias Index = Position
     subscript(i: Index) -> Element {
         get {
             elements[i.y][i.x]
@@ -65,53 +149,6 @@ class Grid<Element> : Collection, Sequence {
         index.x >= 0 && index.x < xSize && index.y >= 0 && index.y < ySize
     }
 
-    enum Direction: Int, CaseIterable {
-        case left = 1
-        case right = 2
-        case up = 4
-        case down = 8
-
-        var dx: Int {
-            switch self {
-            case .left: -1
-            case .right: 1
-            default: 0
-            }
-        }
-
-        var dy: Int {
-            switch self {
-            case .up: -1
-            case .down: 1
-            default: 0
-            }
-        }
-
-        var horizontal: Bool { dx != 0 }
-        var vertical: Bool { dy != 0 }
-
-        func turnClockwise() -> Direction {
-            switch self {
-            case .left: return .up
-            case .right: return .down
-            case .up: return .right
-            case .down: return .left
-            }
-        }
-
-        func turnCCW() -> Direction {
-            switch self {
-            case .left: return .down
-            case .right: return .up
-            case .up: return .left
-            case .down: return .right
-            }
-        }
-
-        func opposite() -> Direction {
-            return self.turnClockwise().turnClockwise()
-        }
-    }
 
     func cardinalDirections(from: Index) -> [Index] {
         Direction.allCases.map({ from.direction($0) }).filter { valid(index: $0) }
@@ -143,41 +180,6 @@ class Grid<Element> : Collection, Sequence {
     }
 
     func makeIterator() -> Iterator { Iterator(grid: self) }
-
-    struct Index : Hashable, Comparable {
-        let x: Int
-        let y: Int
-
-        init(x: Int = 0, y: Int = 0) {
-            self.x = x
-            self.y = y
-        }
-
-        static func < (lhs: Grid<Element>.Index, rhs: Grid<Element>.Index) -> Bool {
-            if lhs.y < rhs.y { return true }
-            if lhs.y > rhs.y { return false }
-            return lhs.x < rhs.x
-        }
-
-        func direction(_ d: Direction) -> Index { Index(x: x+d.dx, y: y+d.dy) }
-
-        func vector(dx: Int, dy: Int) -> Index { Index(x: x+dx, y: y+dy) }
-
-        func direction(to: Self) -> Direction {
-            if x > to.x { return .left }
-            if x < to.x { return .right }
-            if y > to.y { return .up }
-            return .down
-        }
-
-        func wrap(in grid: Grid<Element>) -> Self {
-            var x = self.x % grid.xSize
-            var y = self.y % grid.ySize
-            if x < 0 { x += grid.xSize }
-            if y < 0 { y += grid.ySize }
-            return grid.at(x: x, y: y)
-        }
-    }
 
     func at(x: Int, y: Int) -> Index { Index(x: x, y: y) }
     subscript(x: Int, y: Int) -> Element {

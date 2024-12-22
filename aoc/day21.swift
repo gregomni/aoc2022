@@ -8,9 +8,6 @@
 import Foundation
 
 func dayTwentyOne(_ contents: String, part1: Bool = false) -> Int {
-    typealias Pos = Grid<Character>.Index
-    typealias Dir = Grid<Character>.Direction
-
     let numericGrid = Grid(contents: "789\n456\n123\n 0A")
     let directionalGrid = Grid(contents: " ^A\n<v>")
 
@@ -22,7 +19,7 @@ func dayTwentyOne(_ contents: String, part1: Bool = false) -> Int {
     func computeWays(_ grid: Grid<Character>) -> [Move : Set<String>] {
         var allMoves: [Move : Set<String>] = [:]
 
-        func moves(from: Pos, to: Pos) -> Set<String> {
+        func moves(from: Position, to: Position) -> Set<String> {
             guard grid[from] != " " else { return [] }
             if let moves = allMoves[Move(from: grid[from], to: grid[to])] {
                 return moves

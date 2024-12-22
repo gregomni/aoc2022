@@ -8,16 +8,14 @@
 import Foundation
 
 func dayTwelve(_ contents: String) -> Int {
-    typealias Pos = Grid<Character>.Index
-    typealias Dir = Grid<Character>.Direction
     class Region {
         let kind: Character
-        var squares: Set<Pos> = []
+        var squares: Set<Position> = []
         var area: Int { squares.count }
         var perimeter: Int {
             var result = 0
             for i in squares {
-                result += Dir.allCases.count(where: { !squares.contains(i.direction($0)) })
+                result += Direction.allCases.count(where: { !squares.contains(i.direction($0)) })
             }
             return result
         }
@@ -25,8 +23,8 @@ func dayTwelve(_ contents: String) -> Int {
         func sides(in grid: Grid<Character>) -> Int {
             var result = 0
             for i in squares {
-                for d in Dir.allCases where !squares.contains(i.direction(d)) {
-                    func lowerEdgeExtends(in dir: Dir) -> Bool {
+                for d in Direction.allCases where !squares.contains(i.direction(d)) {
+                    func lowerEdgeExtends(in dir: Direction) -> Bool {
                         let j = i.direction(dir)
                         return j < i && squares.contains(j) && !squares.contains(j.direction(d))
                     }
@@ -42,10 +40,10 @@ func dayTwelve(_ contents: String) -> Int {
             self.kind = kind
         }
 
-        func add(_ i: Pos, in grid: Grid<Character>) {
+        func add(_ i: Position, in grid: Grid<Character>) {
             squares.insert(i)
             let kind = grid[i]
-            for d in Dir.allCases {
+            for d in Direction.allCases {
                 let j = i.direction(d)
                 guard grid.valid(index: j), grid[j] == kind, !squares.contains(j) else { continue }
                 add(j, in: grid)

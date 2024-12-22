@@ -8,9 +8,6 @@
 import Foundation
 
 func dayFifteen(_ contents: String, part1: Bool = false) -> Int {
-    typealias Pos = Grid<Character>.Index
-    typealias Dir = Grid<Character>.Direction
-
     let middle = contents.firstMatch(of: /\n\n/)!
 
     let singleWide = String(contents.prefix(upTo: middle.startIndex))
@@ -35,7 +32,7 @@ func dayFifteen(_ contents: String, part1: Bool = false) -> Int {
     var position = grid.indices.first(where: { grid[$0] == "@" })!
     grid[position] = "."
 
-    func move(_ d: Dir, from pos: Pos, on grid: Grid<Character>) -> Bool {
+    func move(_ d: Direction, from pos: Position, on grid: Grid<Character>) -> Bool {
         let moved = pos.direction(d)
         defer { grid[moved] = grid[pos] }
 
@@ -70,7 +67,7 @@ func dayFifteen(_ contents: String, part1: Bool = false) -> Int {
     }
 
     for m in movements {
-        func tryMove(_ d: Dir) {
+        func tryMove(_ d: Direction) {
             let copy = Grid(copy: grid)
             if move(d, from: position, on: copy) {
                 position = position.direction(d)
