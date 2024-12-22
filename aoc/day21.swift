@@ -7,7 +7,7 @@
 
 import Foundation
 
-func dayTwentyOne(_ contents: String, part1: Bool = true) -> Int {
+func dayTwentyOne(_ contents: String, part1: Bool = false) -> Int {
     typealias Pos = Grid<Character>.Index
     typealias Dir = Grid<Character>.Direction
 
@@ -21,9 +21,6 @@ func dayTwentyOne(_ contents: String, part1: Bool = true) -> Int {
 
     func computeWays(_ grid: Grid<Character>) -> [Move : Set<String>] {
         var allMoves: [Move : Set<String>] = [:]
-        for e in grid where e != " " {
-            allMoves[Move(from: e, to: e)] = ["A"]
-        }
 
         func moves(from: Pos, to: Pos) -> Set<String> {
             guard grid[from] != " " else { return [] }
@@ -41,6 +38,7 @@ func dayTwentyOne(_ contents: String, part1: Bool = true) -> Int {
             } else if from.x < to.x {
                 result.formUnion(moves(from: from.direction(.right), to: to).map({ [">"] + $0 }))
             }
+            if from == to { result = ["A"] }
             allMoves[Move(from: grid[from], to: grid[to])] = result
             return result
         }
