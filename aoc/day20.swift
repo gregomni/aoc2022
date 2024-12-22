@@ -23,12 +23,14 @@ func dayTwenty(_ contents: String, part1: Bool = false) -> Int {
     var result = 0
     for i in grid.indices {
         guard let startMoves = startToEnd[i] else { continue }
+        if startMoves+2 > limit { continue }
         for x in i.x - cheatDistance ... i.x + cheatDistance {
-            for y in i.y - cheatDistance ... i.y + cheatDistance {
-                let distance = abs(i.x - x) + abs(i.y - y)
-                guard distance <= cheatDistance else { continue }
+            let xDistance = abs(i.x - x)
+            let cheatLeft = cheatDistance - xDistance
+            for y in i.y - cheatLeft ... i.y + cheatLeft {
+                let yDistance = abs(i.y - y)
                 guard let endMoves = endToStart[Pos(x: x, y: y)] else { continue }
-                if startMoves + endMoves + distance <= limit {
+                if startMoves + endMoves + xDistance + yDistance <= limit {
                     result += 1
                 }
             }
