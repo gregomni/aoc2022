@@ -17,19 +17,23 @@ func dayTwenty(_ contents: String, part1: Bool = false) -> Int {
     let startToEnd = grid.bestManhattanMoves(from: start, to: end)
     let bestWithNoCheats = startToEnd[end]!
     let endToStart = grid.bestManhattanMoves(from: end, to: start)
+    let etsGrid = Grid<Int?>(width: grid.xSize, height: grid.ySize, element: nil)
+    for (i, score) in endToStart {
+        etsGrid[i.x,i.y] = score
+    }
 
     let limit = bestWithNoCheats - 100
     let cheatDistance = part1 ? 2 : 20
     var result = 0
-    for i in grid.indices {
-        guard let startMoves = startToEnd[i] else { continue }
-        if startMoves+2 > limit { continue }
+    for (i, startMoves) in startToEnd {
         for x in i.x - cheatDistance ... i.x + cheatDistance {
             let xDistance = abs(i.x - x)
             let cheatLeft = cheatDistance - xDistance
             for y in i.y - cheatLeft ... i.y + cheatLeft {
+                let pos = Grid<Int?>.Index(x: x, y: y)
+                guard etsGrid.valid(index: pos) else { continue }
+                guard let endMoves = etsGrid[pos] else { continue }
                 let yDistance = abs(i.y - y)
-                guard let endMoves = endToStart[Pos(x: x, y: y)] else { continue }
                 if startMoves + endMoves + xDistance + yDistance <= limit {
                     result += 1
                 }
