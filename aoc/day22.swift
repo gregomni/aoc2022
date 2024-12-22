@@ -46,10 +46,12 @@ func dayTwentyTwo(_ contents: String, part1: Bool = false) -> Int {
                     let key = keyForChanges(changes)
                     if !foundKeys.contains(key) {
                         foundKeys.insert(key)
-                        let total = summedPriceForChanges[key, default:0] + p
-                        summedPriceForChanges[key] = total
-                        if total > best {
-                            best = total
+                        if p > 0 {
+                            let total = summedPriceForChanges[key, default:0] + p
+                            summedPriceForChanges[key] = total
+                            if total > best {
+                                best = total
+                            }
                         }
                     }
                 }
