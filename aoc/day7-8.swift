@@ -30,22 +30,19 @@ func daySeven(_ contents: String) -> Int {
         let spaceParts = colonParts[1].components(separatedBy: " ")
         let operands = spaceParts.dropFirst().map { Int($0)! }
 
-        func evaluate(_ testValue: Int, operands: [Int]) -> Bool {
+        func evaluate(_ testValue: Int, first: Int, rest: ArraySlice<Int>) -> Bool {
+            guard let second = rest.first else { return testValue == first }
             let operators: [(Int,Int)->Int] = [{$0 * $1}, {$0 + $1}, appendDigits]
             for o in operators {
-                let v = o(operands[0], operands[1])
-                if operands.count == 2 {
-                    if v == testValue { return true }
-                } else {
-                    if v <= testValue, evaluate(testValue, operands: [v] + operands.dropFirst(2)) {
-                        return true
-                    }
+                let v = o(first, second)
+                if v <= testValue, evaluate(testValue, first: v, rest: rest.dropFirst()) {
+                    return true
                 }
             }
             return false
         }
 
-        if evaluate(testValue, operands: operands) {
+        if evaluate(testValue, first: operands.first!, rest: operands.dropFirst()) {
             result += testValue
         }
     }
