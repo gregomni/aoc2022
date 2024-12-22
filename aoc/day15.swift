@@ -7,7 +7,7 @@
 
 import Foundation
 
-func dayFifteen(_ contents: String, part1: Bool = true) -> Int {
+func dayFifteen(_ contents: String, part1: Bool = false) -> Int {
     typealias Pos = Grid<Character>.Index
     typealias Dir = Grid<Character>.Direction
 
