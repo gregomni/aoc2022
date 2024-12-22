@@ -22,7 +22,7 @@ if args[1] == "all" {
     let sum = times.reduce(0,+)
     for (i,t) in zip(times.indices, times) {
         let fraction = t/sum
-        let p = fraction > 0.01 ? fraction.formatted(.percent.rounded(rule: .up, increment: 1)) : ""
+        let p = fraction >= 0.05 ? fraction.formatted(.percent.rounded(rule: .up, increment: 1)) : ""
         print("#\(i+1)\t\(t.formatted(format))s\t\(p)")
     }
     print("total\t\(sum.formatted(format))s")

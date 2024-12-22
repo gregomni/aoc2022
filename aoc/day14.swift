@@ -56,7 +56,7 @@ func dayFourteen(_ contents: String, part1: Bool = false) -> Int {
         }
         return q.reduce(1,*)
     } else {
-        let grid = Grid(width: totalWidth, height: totalHeight, element: ".")
+        let grid = Grid(width: totalWidth, height: totalHeight, element: false)
 
         var best = 0
         var bestTime = 0
@@ -64,12 +64,12 @@ func dayFourteen(_ contents: String, part1: Bool = false) -> Int {
             let g = Grid(copy: grid)
             for r in robots {
                 let (x,y) = r.time(t)
-                g[x,y] = "#"
+                g[x,y] = true
             }
             var near = 0
-            for i in g.indices where g[i] == "#" {
+            for i in g.indices where g[i] {
                 let l = i.direction(.left)
-                if g.valid(index: l), g[l] == "#" { near += 1 }
+                if g.valid(index: l), g[l] { near += 1 }
             }
             if near > best {
                 /*
