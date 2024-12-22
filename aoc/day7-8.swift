@@ -8,8 +8,22 @@
 import Foundation
 
 func daySeven(_ contents: String) -> Int {
-    var result = 0
+    let powersOfTen =
+      [1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000,
+       10000000000, 100000000000, 1000000000000, 10000000000000, 100000000000000,
+       1000000000000000, 10000000000000000, 100000000000000000, 1000000000000000000,
+      ]
 
+    func appendDigits(a: Int, b: Int) -> Int {
+        for i in powersOfTen.indices {
+            if b < powersOfTen[i] {
+                return a * powersOfTen[i] + b
+            }
+        }
+        return 0
+    }
+
+    var result = 0
     contents.enumerateLines { line, _ in
         let colonParts = line.components(separatedBy: ":")
         let testValue = Int(colonParts[0])!
@@ -17,7 +31,7 @@ func daySeven(_ contents: String) -> Int {
         let operands = spaceParts.dropFirst().map { Int($0)! }
 
         func evaluate(_ testValue: Int, operands: [Int]) -> Bool {
-            let operators: [(Int,Int)->Int] = [{$0 * $1}, {$0 + $1}, { Int($0.description + $1.description)! }]
+            let operators: [(Int,Int)->Int] = [{$0 * $1}, {$0 + $1}, appendDigits]
             for o in operators {
                 let v = o(operands[0], operands[1])
                 if operands.count == 2 {
