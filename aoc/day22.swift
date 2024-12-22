@@ -51,7 +51,6 @@ func dayTwentyTwo(_ contents: String, part1: Bool = false) -> Int {
                 lastP = p
                 n = evolve(n)
             }
-            changes.remove(at: 0)
         }
     }
 
@@ -72,15 +71,13 @@ func dayTwentyTwo(_ contents: String, part1: Bool = false) -> Int {
     func rangeForPrevious(_ changes: [Int]) -> ClosedRange<Int> {
         var max = 9
         var min = 0
-        let change = changes.reduce(0,+)
-        if change < 0 {
-            max = 9 + change
-        } else if change > 0 {
-            min = 0 + change
+        for c in changes {
+            max += c
+            min += c
+            if max > 9 { max = 9 }
+            if min < 0 { min = 0 }
         }
-        let newChangeMin = Swift.max(-9,-max)
-        let newChangeMax = Swift.min(9,9 - min)
-        return newChangeMin ... newChangeMax
+        return (0 - max) ... (9 - min)
     }
 
     var max = 0
