@@ -49,9 +49,6 @@ func dayTwentyThree(_ contents: String, part1: Bool = false) -> Int {
 
         // given a known group and some computers that could be added, return the biggest group
         func find(group: Set<String>, possibles: Set<String>) -> Set<String> {
-            // abort if even if all are added it won't be bigger than best found
-            if group.count + possibles.count <= overallMax { return [] }
-
             var max = group.count
             var bestFind = group
 
@@ -61,7 +58,7 @@ func dayTwentyThree(_ contents: String, part1: Bool = false) -> Int {
                 if group.isSubset(of: computers[c]!.links) {
                     var new = group
                     new.insert(c)
-                    let found = find(group: new, possibles: possibles.subtracting(new))
+                    let found = find(group: new, possibles: possibles)
                     if found.count > max {
                         bestFind = found
                         max = found.count
@@ -76,6 +73,10 @@ func dayTwentyThree(_ contents: String, part1: Bool = false) -> Int {
         for c in computers.values {
             for l in c.links {
                 let intersect = computers[l]!.links.intersection(c.links)
+
+                // abort if even if all are added it won't be bigger than best found
+                if 2 + intersect.count <= overallMax { continue }
+
                 let found = find(group: [c.id,l], possibles: intersect)
                 if found.count > overallMax {
                     bestFind = found
