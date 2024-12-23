@@ -91,50 +91,55 @@ struct Position : Hashable, Comparable {
 }
 
 class Grid<Element> : Collection, Sequence {
-    var elements: [[Element]] = []
+    let width: Int
+    let height: Int
+    var elements: [Element]
 
-    init() {}
+    init(width: Int, height: Int, elements: [Element]) {
+        self.width = width
+        self.height = height
+        self.elements = elements
+    }
 
-    init(copy grid: Grid) {
-        elements = grid.elements
+    convenience init(copy grid: Grid) {
+        self.init(width: grid.xSize, height: grid.ySize, elements: grid.elements)
     }
 
     convenience init(contents: String, makeSameWidth: Bool = false, mapping: @escaping (Character) -> Element) {
-        self.init()
-
         var lines = contents.components(separatedBy: "\n")
+        let max = lines.map({ $0.count }).max()!
         if makeSameWidth {
-            let max = lines.map({ $0.count }).max()!
             for i in lines.indices {
                 lines[i].append(String(repeating: " ", count: max - lines[i].count))
             }
         }
 
-        var map: [[Element]] = []
+        var map: [Element] = []
+        var empty = 0
         for line in lines {
-            guard !line.isEmpty else { continue }
-            map.append(line.map(mapping))
+            guard !line.isEmpty else {
+                empty += 1
+                continue
+            }
+            map.append(contentsOf: line.map(mapping))
         }
-        elements = map
+        self.init(width: max, height: lines.count - empty, elements: map)
     }
 
     convenience init(width: Int, height: Int, element: Element) {
-        self.init()
-        for _ in 0 ..< height {
-            elements.append(Array(repeating: element, count: width))
-        }
+        self.init(width: width, height: height, elements: Array(repeating: element, count: width*height))
     }
 
-    var xSize: Int { elements.first?.count ?? 0 }
-    var ySize: Int { elements.count }
+    var xSize: Int { width }
+    var ySize: Int { height }
 
     typealias Index = Position
     subscript(i: Index) -> Element {
         get {
-            elements[i.y][i.x]
+            elements[i.y * width + i.x]
         }
         set {
-            elements[i.y][i.x] = newValue
+            elements[i.y * width + i.x] = newValue
         }
     }
 
@@ -184,10 +189,10 @@ class Grid<Element> : Collection, Sequence {
     func at(x: Int, y: Int) -> Index { Index(x: x, y: y) }
     subscript(x: Int, y: Int) -> Element {
         get {
-            elements[y][x]
+            elements[y * width + x]
         }
         set {
-            elements[y][x] = newValue
+            elements[y * width + x] = newValue
         }
     }
 

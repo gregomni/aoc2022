@@ -32,10 +32,13 @@ func dayFifteen(_ contents: String, part1: Bool = false) -> Int {
     var position = grid.indices.first(where: { grid[$0] == "@" })!
     grid[position] = "."
 
-    // move is recursive and destructive, so needs a clean grid each time in case it fails
-    func move(_ d: Direction, from pos: Position, on grid: Grid<Character>) -> Bool {
+    func move(_ d: Direction, from pos: Position, trial: Bool = false) -> Bool {
         let moved = pos.direction(d)
-        defer { grid[moved] = grid[pos] }
+        defer {
+            if (!trial) {
+                grid[moved] = grid[pos]
+            }
+        }
 
         switch grid[moved] {
         case "#":
@@ -43,24 +46,28 @@ func dayFifteen(_ contents: String, part1: Bool = false) -> Int {
         case ".":
             return true
         case "O":
-            return move(d, from: moved, on: grid)
+            return move(d, from: moved, trial: trial)
         case "[":
             if d == .up || d == .down {
-                let l = move(d, from: moved, on: grid)
-                let r = move(d, from: moved.direction(.right), on: grid)
-                grid[moved.direction(.right)] = "."
+                let l = move(d, from: moved, trial: trial)
+                let r = move(d, from: moved.direction(.right), trial: trial)
+                if !trial {
+                    grid[moved.direction(.right)] = "."
+                }
                 return l && r
             } else {
-                return move(d, from: moved, on: grid)
+                return move(d, from: moved, trial: trial)
             }
         case "]":
             if d == .up || d == .down {
-                let l = move(d, from: moved.direction(.left), on: grid)
-                let r = move(d, from: moved, on: grid)
-                grid[moved.direction(.left)] = "."
+                let l = move(d, from: moved.direction(.left), trial: trial)
+                let r = move(d, from: moved, trial: trial)
+                if !trial {
+                    grid[moved.direction(.left)] = "."
+                }
                 return l && r
             } else {
-                return move(d, from: moved, on: grid)
+                return move(d, from: moved, trial: trial)
             }
         default:
             return false
@@ -68,12 +75,10 @@ func dayFifteen(_ contents: String, part1: Bool = false) -> Int {
     }
 
     for m in movements {
-        // copy the grid, try the move, keep the new grid if it works
         func tryMove(_ d: Direction) {
-            let copy = Grid(copy: grid)
-            if move(d, from: position, on: copy) {
+            if move(d, from: position, trial: true) {
+                _ = move(d, from: position)
                 position = position.direction(d)
-                grid = copy
             }
         }
 
