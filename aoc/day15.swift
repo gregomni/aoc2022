@@ -26,7 +26,7 @@ func dayFifteen(_ contents: String, part1: Bool = false) -> Int {
         }
     }).joined()
 
-    var grid = Grid(contents: part1 ? singleWide : doubleWide)
+    let grid = Grid(contents: part1 ? singleWide : doubleWide)
     let movements = String(contents.suffix(from: middle.endIndex))
 
     var position = grid.indices.first(where: { grid[$0] == "@" })!
