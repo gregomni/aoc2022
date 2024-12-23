@@ -91,6 +91,8 @@ func run(problem: Int) -> Double {
         print(dayTwentyTwo(contents))
     case 23:
         print(dayTwentyThree(contents))
+    case 24:
+        print(dayTwentyFour(contents))
     default:
         print("unknown problem")
         exit(2)
