@@ -8,13 +8,36 @@
 import Foundation
 
 func dayTwentyFour(_ contents: String, part1: Bool = false) -> Int {
-    var values: [String: Bool] = [:]
     var valuesSection = true
     var gates: [String: Gate] = [:]
+    var xValues = Array(repeating: false, count: 45)
+    var yValues = Array(repeating: false, count: 45)
+
+    enum Input {
+        case x(Int)
+        case y(Int)
+        case gate(String)
+
+        init(_ s: Substring) {
+            switch s.first {
+            case "x": self = .x(Int(s.dropFirst())!)
+            case "y": self = .y(Int(s.dropFirst())!)
+            default: self = .gate(String(s))
+            }
+        }
+    }
+
+    func inputValue(_ input: Input) -> Bool {
+        switch input {
+        case .x(let i): return xValues[i]
+        case .y(let i): return yValues[i]
+        case .gate(let s): return getValue(s)
+        }
+    }
 
     struct Gate {
-        var inputA: String
-        var inputB: String
+        var inputA: Input
+        var inputB: Input
         let output: String
         let type: String
     }
@@ -23,20 +46,24 @@ func dayTwentyFour(_ contents: String, part1: Bool = false) -> Int {
         if line.isEmpty {
             valuesSection = false
         } else if valuesSection {
-            let parts = line.components(separatedBy: ": ")
-            values[parts[0]] = parts[1] == "1"
+            let match = line.firstMatch(of: /(.)(..): (.)/)!
+            let i = Int(match.2)!
+            if match.1 == "x" {
+                xValues[i] = match.3 == "1"
+            } else {
+                yValues[i] = match.3 == "1"
+            }
         } else {
             let match = line.firstMatch(of: /([^ ]+) ([^ ]+) ([^ ]+) -> (.+)/)!
-            let gate = Gate(inputA: String(match.1), inputB: String(match.3), output: String(match.4), type: String(match.2))
+            let gate = Gate(inputA: Input(match.1), inputB: Input(match.3), output: String(match.4), type: String(match.2))
             gates[String(gate.output)] = gate
         }
     }
 
     func getValue(_ string: String) -> Bool {
-        if let v = values[string] { return v }
         let gate = gates[string]!
-        let a = getValue(gate.inputA)
-        let b = getValue(gate.inputB)
+        let a = inputValue(gate.inputA)
+        let b = inputValue(gate.inputB)
         switch gate.type {
         case "AND":
             return a && b
@@ -54,67 +81,72 @@ func dayTwentyFour(_ contents: String, part1: Bool = false) -> Int {
         start + (bit < 10 ? "0" + bit.description : bit.description)
     }
 
-    func getInt(_ string: String) -> Int {
+    if part1 {
         var result = 0
-        for i in (0 ..< 45).reversed() {
-            let s = gateFor(start: string, bit: i)
-            if gates[s] == nil && values[s] == nil { continue }
+        for i in (0 ... 45).reversed() {
+            let s = gateFor(start: "z", bit: i)
             let v = getValue(s)
             result = (result << 1) | (v ? 1 : 0)
         }
         return result
     }
 
-    if part1 {
-        return getInt("z")
+    var valueHighBitDependencies: [String : Int] = [:]
+    var gateDependencies: [String : Set<String>] = [:]
+
+    func resetDependencies() {
+        valueHighBitDependencies = [:]
+        gateDependencies = [:]
     }
 
-    func findGates(involved: String, g: inout Set<String>, v: inout Set<String>) {
-        if values[involved] != nil {
-            v.insert(involved)
-            return
+    func findGates(involved: Input) -> (g: Set<String>, v: Int) {
+        switch involved {
+        case .x(let i), .y(let i):
+            return ([], i)
+        case .gate(let s):
+            return findGates(involved: s)
+        }
+    }
+
+    func findGates(involved: String) -> (g: Set<String>, v: Int) {
+        if let v = valueHighBitDependencies[involved] {
+            return (gateDependencies[involved]!, v)
         }
         let gate = gates[involved]!
-        g.insert(involved)
-        findGates(involved: gate.inputA, g: &g, v: &v)
-        findGates(involved: gate.inputB, g: &g, v: &v)
-    }
-    func findGates(involved: String) -> (g: Set<String>, v: Set<String>) {
-        var g = Set<String>()
-        var v = Set<String>()
-        findGates(involved: involved, g: &g, v: &v)
+        let (ag, av) = findGates(involved: gate.inputA)
+        let (bg, bv) = findGates(involved: gate.inputB)
+        let g = ag.union(bg).union([involved])
+        let v = max(av, bv)
+        valueHighBitDependencies[involved] = v
+        gateDependencies[involved] = g
         return (g,v)
-    }
-
-    func highBitInvolvement(allValues: Set<String>) -> Int {
-        return allValues.map({ Int($0.dropFirst())! }).max()!
     }
 
     func testBit(_ z: Int) -> Bool {
         if z == 0 {
             for x in [0, 1] {
-                values[gateFor(start: "x", bit: z)] = x == 1
+                xValues[z] = x == 1
                 for y in [0, 1] {
-                    values[gateFor(start: "y", bit: z)] = y == 1
+                    yValues[z] = y == 1
                     let v = getValue(gateFor(start: "z", bit: z)) ? 1 : 0
                     guard (x + y) & 1 == v else { return false }
                 }
             }
         } else if z == 45 {
             for carry in [0, 1] {
-                values[gateFor(start: "x", bit: z-1)] = carry == 1
-                values[gateFor(start: "y", bit: z-1)] = carry == 1
+                xValues[z-1] = carry == 1
+                yValues[z-1] = carry == 1
                 let v = getValue(gateFor(start: "z", bit: z)) ? 1 : 0
                 guard carry == v else { return false }
             }
         } else {
             for carry in [0, 1] {
-                values[gateFor(start: "x", bit: z-1)] = carry == 1
-                values[gateFor(start: "y", bit: z-1)] = carry == 1
+                xValues[z-1] = carry == 1
+                yValues[z-1] = carry == 1
                 for x in [0, 1] {
-                    values[gateFor(start: "x", bit: z)] = x == 1
+                    xValues[z] = x == 1
                     for y in [0, 1] {
-                        values[gateFor(start: "y", bit: z)] = y == 1
+                        yValues[z] = y == 1
                         let v = getValue(gateFor(start: "z", bit: z)) ? 1 : 0
                         guard (x + y + carry) & 1 == v else { return false }
                     }
@@ -136,8 +168,6 @@ func dayTwentyFour(_ contents: String, part1: Bool = false) -> Int {
         }
     }
 
-    findGoodBits()
-
     func testGoodBits(and: Int) -> Bool {
         guard testBit(and) else { return false }
         for b in goodBits {
@@ -147,17 +177,16 @@ func dayTwentyFour(_ contents: String, part1: Bool = false) -> Int {
     }
 
     func findPossibleSwaps() -> [(String,String)] {
+        resetDependencies()
         var possibleSwaps: [(String,String)] = []
-        for z in 0 ... 45 {
-            if goodBits.contains(z) { continue }
+        for z in 0 ... 45 where !goodBits.contains(z) {
             let (g,_) = findGates(involved: gateFor(start: "z", bit: z))
             for a in g {
                 let (aInvolved, _) = findGates(involved: a)
                 for b in allGateNames where !aInvolved.contains(b) {
                     guard a != b else { continue }
-                    let (bInvolved, bValues) = findGates(involved: b)
-                    guard !bInvolved.contains(a) else { continue }
-                    guard highBitInvolvement(allValues: bValues) == z else { continue }
+                    let (bInvolved, bHighBitValue) = findGates(involved: b)
+                    guard !bInvolved.contains(a), bHighBitValue == z else { continue }
                     let gA = gates[a]!
                     let gB = gates[b]!
                     gates[a] = gB
