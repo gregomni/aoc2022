@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Collections
 
 func dayTwentyTwo(_ contents: String, part1: Bool = false) -> Int {
     func evolve(_ n: Int) -> Int {
@@ -24,14 +25,14 @@ func dayTwentyTwo(_ contents: String, part1: Bool = false) -> Int {
         let b = changes[1]+9
         let c = changes[2]+9
         let d = changes[3]+9
-        return a << 15 + b << 10 + c << 5 + d
+        return ((a * 19 + b) * 19 + c) * 19 + d
     }
 
     var summedPriceForChanges: [Int:Int] = [:]
     var best = 0
 
     func loadMonkey(_ secret: Int) {
-        var foundKeys = Set<Int>(minimumCapacity: 2000)
+        var foundKeys = BitSet(reservingCapacity: 19*19*19*19)
         var n = secret
         var changes: [Int] = []
         var lastP: Int? = nil
