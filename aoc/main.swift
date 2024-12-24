@@ -16,7 +16,7 @@ if (args.count < 2) {
 let format = FloatingPointFormatStyle<Double>.number.rounded(increment: 0.001).precision(.fractionLength(3))
 if args[1] == "all" {
     var times: [Double] = []
-    for problem in 1 ... 23 {
+    for problem in 1 ... 24 {
         times.append(run(problem: problem))
     }
     let sum = times.reduce(0,+)
