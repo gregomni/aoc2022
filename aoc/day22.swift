@@ -28,8 +28,8 @@ func dayTwentyTwo(_ contents: String, part1: Bool = false) -> Int {
         return ((a * 19 + b) * 19 + c) * 19 + d
     }
 
-    var summedPriceForChanges: [Int:Int] = [:]
-    var best = 0
+    var summedPriceForChanges: [Int16] = Array(repeating: 0, count: 19*19*19*19)
+    var best: Int16 = 0
 
     func loadMonkey(_ secret: Int) {
         var foundKeys = BitSet(reservingCapacity: 19*19*19*19)
@@ -48,27 +48,8 @@ func dayTwentyTwo(_ contents: String, part1: Bool = false) -> Int {
                     if !foundKeys.contains(key) {
                         foundKeys.insert(key)
                         if p > 0 {
-/* ORIGINAL - and now the bottleneck
-                            let total = summedPriceForChanges[key, default:0] + p
-                            summedPriceForChanges[key] = total
- */
-
-/* IMRPOVEMENT #1 - only access the dictionary once (but still writes to the bucket twice in the default: case). Saves 5ms
-                            func totalByAdding(value: inout Int, addition: Int) -> Int {
-                                let result = value + addition
-                                value = result
-                                return result
-                            }
-                            let total = totalByAdding(value: &summedPriceForChanges[key, default:0], addition: p)
-*/
-                            // IMPROVEMENT #2 - only write once. Oddly, this construction is faster than `if let prevTotal = summedPriceForChanges[key]`. Saves 15ms over original
-                            let total: Int
-                            if let index = summedPriceForChanges.index(forKey: key) {
-                                total = summedPriceForChanges[index].value + p
-                            } else {
-                                total = p
-                            }
-                            summedPriceForChanges[key] = total
+                            summedPriceForChanges[key] += Int16(p)
+                            let total = summedPriceForChanges[key]
                             if total > best {
                                 best = total
                             }
@@ -85,5 +66,5 @@ func dayTwentyTwo(_ contents: String, part1: Bool = false) -> Int {
         loadMonkey(Int(line)!)
     }
 
-    return best
+    return Int(best)
 }
