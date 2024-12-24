@@ -48,7 +48,26 @@ func dayTwentyTwo(_ contents: String, part1: Bool = false) -> Int {
                     if !foundKeys.contains(key) {
                         foundKeys.insert(key)
                         if p > 0 {
+/* ORIGINAL - and now the bottleneck
                             let total = summedPriceForChanges[key, default:0] + p
+                            summedPriceForChanges[key] = total
+ */
+
+/* IMRPOVEMENT #1 - only access the dictionary once (but still writes to the bucket twice in the default: case). Saves 5ms
+                            func totalByAdding(value: inout Int, addition: Int) -> Int {
+                                let result = value + addition
+                                value = result
+                                return result
+                            }
+                            let total = totalByAdding(value: &summedPriceForChanges[key, default:0], addition: p)
+*/
+                            // IMPROVEMENT #2 - only write once. Oddly, this construction is faster than `if let prevTotal = summedPriceForChanges[key]`. Saves 15ms over original
+                            let total: Int
+                            if let index = summedPriceForChanges.index(forKey: key) {
+                                total = summedPriceForChanges[index].value + p
+                            } else {
+                                total = p
+                            }
                             summedPriceForChanges[key] = total
                             if total > best {
                                 best = total
