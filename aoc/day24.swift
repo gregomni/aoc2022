@@ -35,11 +35,36 @@ func dayTwentyFour(_ contents: String, part1: Bool = false) -> Int {
         }
     }
 
+    enum GateType {
+        case and
+        case or
+        case xor
+
+        func compute(a: Bool, b: Bool) -> Bool {
+            switch self {
+            case .and:
+                return a && b
+            case .or:
+                return a || b
+            case .xor:
+                return (a || b) && !(a && b)
+            }
+        }
+
+        init(_ s: Substring) {
+            switch s {
+            case "AND": self = .and
+            case "OR": self = .or
+            default: self = .xor
+            }
+        }
+    }
+
     struct Gate {
         var inputA: Input
         var inputB: Input
         let output: String
-        let type: String
+        let type: GateType
     }
 
     contents.enumerateLines { line, _ in
@@ -55,7 +80,7 @@ func dayTwentyFour(_ contents: String, part1: Bool = false) -> Int {
             }
         } else {
             let match = line.firstMatch(of: /([^ ]+) ([^ ]+) ([^ ]+) -> (.+)/)!
-            let gate = Gate(inputA: Input(match.1), inputB: Input(match.3), output: String(match.4), type: String(match.2))
+            let gate = Gate(inputA: Input(match.1), inputB: Input(match.3), output: String(match.4), type: GateType(match.2))
             gates[String(gate.output)] = gate
         }
     }
@@ -64,17 +89,7 @@ func dayTwentyFour(_ contents: String, part1: Bool = false) -> Int {
         let gate = gates[string]!
         let a = inputValue(gate.inputA)
         let b = inputValue(gate.inputB)
-        switch gate.type {
-        case "AND":
-            return a && b
-        case "OR":
-            return a || b
-        case "XOR":
-            return (a || b) && !(a && b)
-        default:
-            assertionFailure()
-            return false
-        }
+        return gate.type.compute(a: a, b: b)
     }
 
     func gateFor(start: String, bit: Int) -> String {
