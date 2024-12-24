@@ -185,7 +185,6 @@ func dayTwentyFour(_ contents: String, part1: Bool = false) -> Int {
             for a in g {
                 let (aInvolved, _) = findGates(involved: a)
                 for b in allGateNames where !aInvolved.contains(b) {
-                    guard a != b else { continue }
                     let (bInvolved, bHighBitValue) = findGates(involved: b)
                     guard !bInvolved.contains(a), bHighBitValue == z else { continue }
                     let gA = gates[a]!
