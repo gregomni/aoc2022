@@ -123,12 +123,13 @@ func dayTwentyFour(_ contents: String, part1: Bool = false) -> Int {
     }
 
     func testBit(_ z: Int) -> Bool {
+        let zGate = gateFor(start: "z", bit: z)
         if z == 0 {
             for x in [0, 1] {
                 xValues[z] = x == 1
                 for y in [0, 1] {
                     yValues[z] = y == 1
-                    let v = getValue(gateFor(start: "z", bit: z)) ? 1 : 0
+                    let v = getValue(zGate) ? 1 : 0
                     guard (x + y) & 1 == v else { return false }
                 }
             }
@@ -136,7 +137,7 @@ func dayTwentyFour(_ contents: String, part1: Bool = false) -> Int {
             for carry in [0, 1] {
                 xValues[z-1] = carry == 1
                 yValues[z-1] = carry == 1
-                let v = getValue(gateFor(start: "z", bit: z)) ? 1 : 0
+                let v = getValue(zGate) ? 1 : 0
                 guard carry == v else { return false }
             }
         } else {
@@ -147,7 +148,7 @@ func dayTwentyFour(_ contents: String, part1: Bool = false) -> Int {
                     xValues[z] = x == 1
                     for y in [0, 1] {
                         yValues[z] = y == 1
-                        let v = getValue(gateFor(start: "z", bit: z)) ? 1 : 0
+                        let v = getValue(zGate) ? 1 : 0
                         guard (x + y + carry) & 1 == v else { return false }
                     }
                 }
