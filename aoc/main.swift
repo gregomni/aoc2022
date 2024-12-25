@@ -16,7 +16,7 @@ if (args.count < 2) {
 let format = FloatingPointFormatStyle<Double>.number.rounded(increment: 0.001).precision(.fractionLength(3))
 if args[1] == "all" {
     var times: [Double] = []
-    for problem in 1 ... 24 {
+    for problem in 1 ... 25 {
         times.append(run(problem: problem))
     }
     let sum = times.reduce(0,+)
@@ -93,6 +93,8 @@ func run(problem: Int) -> Double {
         print(dayTwentyThree(contents))
     case 24:
         print(dayTwentyFour(contents))
+    case 25:
+        print(dayTwentyFive(contents))
     default:
         print("unknown problem")
         exit(2)
