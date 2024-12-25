@@ -18,20 +18,20 @@ func dayTwentyFour(_ contents: String, part1: Bool = false) -> Int {
         case y(Int)
         case gate(String)
 
-        init(_ s: Substring) {
+        init(_ s: String) {
             switch s.first {
             case "x": self = .x(Int(s.dropFirst())!)
             case "y": self = .y(Int(s.dropFirst())!)
-            default: self = .gate(String(s))
+            default: self = .gate(s)
             }
         }
     }
 
-    func inputValue(_ input: Input) -> Bool {
+    func inputValue(_ input: Input, cachingBelowBit: Int?) -> Bool {
         switch input {
         case .x(let i): return xValues[i]
         case .y(let i): return yValues[i]
-        case .gate(let s): return getValue(s)
+        case .gate(let s): return getValue(s, cachingBelowBit: cachingBelowBit)
         }
     }
 
@@ -51,7 +51,7 @@ func dayTwentyFour(_ contents: String, part1: Bool = false) -> Int {
             }
         }
 
-        init(_ s: Substring) {
+        init(_ s: String) {
             switch s {
             case "AND": self = .and
             case "OR": self = .or
@@ -65,31 +65,46 @@ func dayTwentyFour(_ contents: String, part1: Bool = false) -> Int {
         var inputB: Input
         let output: String
         let type: GateType
+        var cached: Bool? = nil
+        var highBitDependency: Int? = nil
+
+        mutating func clearCache() {
+            cached = nil
+            highBitDependency = nil
+        }
     }
 
     contents.enumerateLines { line, _ in
         if line.isEmpty {
             valuesSection = false
         } else if valuesSection {
-            let match = line.firstMatch(of: /(.)(..): (.)/)!
-            let i = Int(match.2)!
-            if match.1 == "x" {
-                xValues[i] = match.3 == "1"
+            let parts = line.components(separatedBy: ": ")
+            let i = Int(parts[0].dropFirst())!
+            if parts[0].first == "x" {
+                xValues[i] = parts[1] == "1"
             } else {
-                yValues[i] = match.3 == "1"
+                yValues[i] = parts[1] == "1"
             }
         } else {
-            let match = line.firstMatch(of: /([^ ]+) ([^ ]+) ([^ ]+) -> (.+)/)!
-            let gate = Gate(inputA: Input(match.1), inputB: Input(match.3), output: String(match.4), type: GateType(match.2))
+            let parts = line.components(separatedBy: " -> ")
+            let inputs = parts[0].components(separatedBy: " ")
+            let gate = Gate(inputA: Input(inputs[0]), inputB: Input(inputs[2]), output: parts[1], type: GateType(inputs[1]))
             gates[String(gate.output)] = gate
         }
     }
 
-    func getValue(_ string: String) -> Bool {
+    func getValue(_ string: String, cachingBelowBit: Int? = nil) -> Bool {
         let gate = gates[string]!
-        let a = inputValue(gate.inputA)
-        let b = inputValue(gate.inputB)
-        return gate.type.compute(a: a, b: b)
+        var cache = false
+        if let cachingBelowBit, let high = gate.highBitDependency, high < cachingBelowBit {
+            if let v = gate.cached { return v }
+            cache = true
+        }
+        let a = inputValue(gate.inputA, cachingBelowBit: cachingBelowBit)
+        let b = inputValue(gate.inputB, cachingBelowBit: cachingBelowBit)
+        let result = gate.type.compute(a: a, b: b)
+        if cache { gates[string]!.cached = result }
+        return result
     }
 
     func gateFor(start: String, bit: Int) -> String {
@@ -110,8 +125,6 @@ func dayTwentyFour(_ contents: String, part1: Bool = false) -> Int {
     var gateDependencies: [String : Set<String>] = [:]
 
     func computeDependencies() {
-        var valueHighBitDependencies: [String : Int] = [:]
-
         func findGates(involved: Input) -> (g: Set<String>, v: Int) {
             switch involved {
             case .x(let i), .y(let i):
@@ -122,15 +135,17 @@ func dayTwentyFour(_ contents: String, part1: Bool = false) -> Int {
         }
 
         func findGates(involved: String) -> (g: Set<String>, v: Int) {
-            if let v = valueHighBitDependencies[involved] {
+            var gate = gates[involved]!
+            if let v = gate.highBitDependency {
                 return (gateDependencies[involved]!, v)
             }
-            let gate = gates[involved]!
             let (ag, av) = findGates(involved: gate.inputA)
             let (bg, bv) = findGates(involved: gate.inputB)
             let g = ag.union(bg).union([involved])
             let v = max(av, bv)
-            valueHighBitDependencies[involved] = v
+            gate.highBitDependency = v
+            gate.cached = nil
+            gates[involved] = gate
             gateDependencies[involved] = g
             gateNamesByHighBit[v].append(involved)
             return (g,v)
@@ -139,13 +154,17 @@ func dayTwentyFour(_ contents: String, part1: Bool = false) -> Int {
         gateNamesByHighBit = Array(repeating: [], count: 45)
         gateDependencies = [:]
 
+        for k in gates.keys {
+            gates[k]!.clearCache()
+        }
         for g in gates.keys {
             _ = findGates(involved: g)
         }
     }
 
-    func testBit(_ z: Int) -> Bool {
+    func testBit(_ z: Int, caching: Bool = false) -> Bool {
         let zGate = gateFor(start: "z", bit: z)
+        let cacheBits = caching ? z-1 : nil
         if z == 0 {
             for x in [0, 1] {
                 xValues[z] = x == 1
@@ -159,7 +178,7 @@ func dayTwentyFour(_ contents: String, part1: Bool = false) -> Int {
             for carry in [0, 1] {
                 xValues[z-1] = carry == 1
                 yValues[z-1] = carry == 1
-                let v = getValue(zGate) ? 1 : 0
+                let v = getValue(zGate, cachingBelowBit: cacheBits) ? 1 : 0
                 guard carry == v else { return false }
             }
         } else {
@@ -170,7 +189,7 @@ func dayTwentyFour(_ contents: String, part1: Bool = false) -> Int {
                     xValues[z] = x == 1
                     for y in [0, 1] {
                         yValues[z] = y == 1
-                        let v = getValue(zGate) ? 1 : 0
+                        let v = getValue(zGate, cachingBelowBit: cacheBits) ? 1 : 0
                         guard (x + y + carry) & 1 == v else { return false }
                     }
                 }
@@ -190,9 +209,9 @@ func dayTwentyFour(_ contents: String, part1: Bool = false) -> Int {
     }
 
     func testGoodBits(and: Int) -> Bool {
-        guard testBit(and) else { return false }
+        guard testBit(and, caching: true) else { return false }
         for b in goodBits {
-            guard testBit(b) else { return false }
+            guard testBit(b, caching: true) else { return false }
         }
         return true
     }
