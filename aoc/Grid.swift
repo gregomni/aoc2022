@@ -8,10 +8,10 @@
 import Foundation
 
 enum Direction: Int, CaseIterable {
-    case left = 1
-    case right = 2
-    case up = 4
-    case down = 8
+    case left = 0
+    case right = 1
+    case up = 2
+    case down = 3
 
     var dx: Int {
         switch self {
@@ -252,10 +252,10 @@ class Grid<Element> : Collection, Sequence {
         PositionSequence(grid: self, current: Index(x: x ?? 0, y: y), move: { $0.direction(.right) })
     }
     func upFrom(x: Int, y: Int? = nil) -> PositionSequence {
-        PositionSequence(grid: self, current: Index(x: x, y: y ?? 0), move: { $0.direction(.up) })
+        PositionSequence(grid: self, current: Index(x: x, y: y ?? ySize-1), move: { $0.direction(.up) })
     }
     func downFrom(x: Int, y: Int? = nil) -> PositionSequence {
-        PositionSequence(grid: self, current: Index(x: x, y: y ?? ySize-1), move: { $0.direction(.down) })
+        PositionSequence(grid: self, current: Index(x: x, y: y ?? 0), move: { $0.direction(.down) })
     }
 }
 
