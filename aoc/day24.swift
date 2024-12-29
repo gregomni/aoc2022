@@ -261,7 +261,20 @@ func dayTwentyFour(_ contents: String, part1: Bool = false) -> Int {
         return nil
     }
 
-    let results = search(0)!
+    let results: [String]
+    let assumeTheSwapsAreUnrelatedToEachOther = true
+    if assumeTheSwapsAreUnrelatedToEachOther {
+        findGoodBits()
+        var flatten: [String] = []
+        let swaps = findPossibleSwaps()
+        for swap in swaps {
+            flatten.append(swap.0)
+            flatten.append(swap.1)
+        }
+        results = flatten
+    } else {
+        results = search(0)!
+    }
     print(results.sorted().joined(separator: ","))
     return 0
 }
